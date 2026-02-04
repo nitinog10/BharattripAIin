@@ -1,0 +1,257 @@
+{
+  "travelPosts": [
+    {
+      "id": "post_1768116088560_svkkdajcd",
+      "userId": "user_1768116019583",
+      "userName": "User",
+      "destination": "Bengaluru",
+      "startDate": "2026-01-13",
+      "endDate": "2026-01-16",
+      "tripType": "Business",
+      "budget": "Moderate",
+      "description": "The plan details travel logistics, including flight information such as airline, flight numbers, departure and arrival times, and confirmation numbers.\n For international trips, layovers and time zone differences should be noted.\n Ground transportation arrangements—like car rentals, taxis, or public transit—are also included, specifying pickup and drop-off locations, times, and confirmation codes.",
+      "allowMultiple": true,
+      "maxParticipants": 4,
+      "createdAt": "2026-01-11T07:21:28.560Z",
+      "status": "active",
+      "joinedUsers": [
+        "user_1768116019583"
+      ],
+      "joinRequestCount": 8
+    },
+    {
+      "id": "post_1768123132987_c8wrfu9f5",
+      "userId": "user_1768123070886",
+      "userName": "User",
+      "destination": "Bengaluru",
+      "startDate": "2026-01-13",
+      "endDate": "2026-01-16",
+      "tripType": "Adventure",
+      "budget": "Moderate",
+      "description": "The plan details travel logistics, including flight information such as airline, flight numbers, departure and arrival times, and confirmation numbers. For international trips, layovers and time zone differences should be noted. Ground transportation arrangements—like car rentals, taxis, or public transit—are also included, specifying pickup and drop-off locations, times, and confirmation codes.\n",
+      "allowMultiple": true,
+      "maxParticipants": 10,
+      "createdAt": "2026-01-11T09:18:52.987Z",
+      "status": "active",
+      "joinedUsers": [
+        "user_1768123070886"
+      ],
+      "joinRequestCount": 1
+    }
+  ],
+  "joinRequests": [
+    {
+      "id": "request_1768116116555_7yv3b9tzm",
+      "postId": "post_1768116088560_svkkdajcd",
+      "userId": "user_1768116089017",
+      "userName": "User",
+      "message": "I am also travelling to bengaluru for my client meeting so could we join u for it",
+      "status": "pending",
+      "createdAt": "2026-01-11T07:21:56.555Z"
+    },
+    {
+      "id": "request_1768116457089_dr4os3dp8",
+      "postId": "post_1768116088560_svkkdajcd",
+      "userId": "user_1768116441658",
+      "userName": "User",
+      "message": "abc",
+      "status": "pending",
+      "createdAt": "2026-01-11T07:27:37.089Z"
+    },
+    {
+      "id": "request_1768116619805_11nngjtdy",
+      "postId": "post_1768116088560_svkkdajcd",
+      "userId": "user_1768116606993",
+      "userName": "User",
+      "message": "idk",
+      "status": "pending",
+      "createdAt": "2026-01-11T07:30:19.805Z"
+    },
+    {
+      "id": "request_1768117615372_pyj2gqb4x",
+      "postId": "post_1768116088560_svkkdajcd",
+      "userId": "user_1768117606233",
+      "userName": "User",
+      "message": "The plan details travel logistics, including flight information such as airline, flight numbers, departure and arrival times, and confirmation numbers.\n For international trips, layovers and time zone differences should be noted.\n Ground transportation arrangements—like car rentals, taxis, or public transit—are also included, specifying pickup and drop-off locations, times, and confirmation codes.",
+      "status": "pending",
+      "createdAt": "2026-01-11T07:46:55.374Z"
+    },
+    {
+      "id": "request_1768122197411_krgyqugzl",
+      "postId": "post_1768116088560_svkkdajcd",
+      "userId": "user_1768122182379",
+      "userName": "User",
+      "message": "Idk",
+      "status": "pending",
+      "createdAt": "2026-01-11T09:03:17.418Z"
+    },
+    {
+      "id": "request_1768122715288_8u0hv5t7x",
+      "postId": "post_1768116088560_svkkdajcd",
+      "userId": "user_1768122706744",
+      "userName": "User",
+      "message": "idk",
+      "status": "pending",
+      "createdAt": "2026-01-11T09:11:55.289Z"
+    },
+    {
+      "id": "request_1768122865825_m9xi5u37a",
+      "postId": "post_1768116088560_svkkdajcd",
+      "userId": "user_1768122850334",
+      "userName": "User",
+      "message": "Idk why i want to join\n",
+      "status": "pending",
+      "createdAt": "2026-01-11T09:14:25.825Z"
+    },
+    {
+      "id": "request_1768123096945_oycmu5mbx",
+      "postId": "post_1768116088560_svkkdajcd",
+      "userId": "user_1768123070886",
+      "userName": "User",
+      "message": "idk\n",
+      "status": "pending",
+      "createdAt": "2026-01-11T09:18:16.945Z"
+    },
+    {
+      "id": "request_1768123480432_i47gdsh6z",
+      "postId": "post_1768123132987_c8wrfu9f5",
+      "userId": "user_1768123475429",
+      "userName": "User",
+      "message": "idk",
+      "status": "pending",
+      "createdAt": "2026-01-11T09:24:40.432Z"
+    }
+  ],
+  "sharedPlans": {
+    "post_1768123132987_c8wrfu9f5": {
+      "postId": "post_1768123132987_c8wrfu9f5",
+      "members": [
+        "user_1768123070886"
+      ],
+      "activities": [],
+      "notes": [],
+      "budgetBreakdown": [],
+      "createdAt": "2026-01-11T09:18:56.703Z",
+      "updatedAt": "2026-01-11T09:18:56.703Z"
+    }
+  },
+  "lookingToJoinPosts": [
+    {
+      "id": "looking_1768116200420_gipw7v78d",
+      "userId": "user_1768116159829",
+      "userName": "User",
+      "destination": "bengaluru",
+      "preferredDates": "january 2026",
+      "tripType": "Cultural",
+      "budget": "Flexible",
+      "description": "The plan details travel logistics, including flight information such as airline, flight numbers, departure and arrival times, and confirmation numbers.\n For international trips, layovers and time zone differences should be noted.\n Ground transportation arrangements—like car rentals, taxis, or public transit—are also included, specifying pickup and drop-off locations, times, and confirmation codes.",
+      "flexibleDates": true,
+      "createdAt": "2026-01-11T07:23:20.420Z",
+      "status": "active"
+    },
+    {
+      "id": "looking_1768122617583_q20btudrx",
+      "userId": "user_1768122247046",
+      "userName": "User",
+      "destination": "bengaluru",
+      "preferredDates": "january 2026",
+      "tripType": "Adventure",
+      "budget": "Flexible",
+      "description": "",
+      "flexibleDates": true,
+      "createdAt": "2026-01-11T09:10:17.585Z",
+      "status": "active"
+    },
+    {
+      "id": "looking_1768122721154_xq6b2qbzy",
+      "userId": "user_1768122706744",
+      "userName": "User",
+      "destination": "bengaluru",
+      "preferredDates": "Flexible",
+      "tripType": "Leisure",
+      "budget": "Flexible",
+      "description": "",
+      "flexibleDates": true,
+      "createdAt": "2026-01-11T09:12:01.155Z",
+      "status": "active"
+    },
+    {
+      "id": "looking_1768122722116_ub87vubot",
+      "userId": "user_1768122706744",
+      "userName": "User",
+      "destination": "Any",
+      "preferredDates": "Flexible",
+      "tripType": "Leisure",
+      "budget": "Flexible",
+      "description": "",
+      "flexibleDates": true,
+      "createdAt": "2026-01-11T09:12:02.116Z",
+      "status": "active"
+    },
+    {
+      "id": "looking_1768122722279_sbhj01smv",
+      "userId": "user_1768122706744",
+      "userName": "User",
+      "destination": "Any",
+      "preferredDates": "Flexible",
+      "tripType": "Leisure",
+      "budget": "Flexible",
+      "description": "",
+      "flexibleDates": true,
+      "createdAt": "2026-01-11T09:12:02.279Z",
+      "status": "active"
+    },
+    {
+      "id": "looking_1768122722453_dov9jfcfh",
+      "userId": "user_1768122706744",
+      "userName": "User",
+      "destination": "Any",
+      "preferredDates": "Flexible",
+      "tripType": "Leisure",
+      "budget": "Flexible",
+      "description": "",
+      "flexibleDates": true,
+      "createdAt": "2026-01-11T09:12:02.455Z",
+      "status": "active"
+    },
+    {
+      "id": "looking_1768122722607_qv99oot9y",
+      "userId": "user_1768122706744",
+      "userName": "User",
+      "destination": "Any",
+      "preferredDates": "Flexible",
+      "tripType": "Leisure",
+      "budget": "Flexible",
+      "description": "",
+      "flexibleDates": true,
+      "createdAt": "2026-01-11T09:12:02.608Z",
+      "status": "active"
+    },
+    {
+      "id": "looking_1768122722831_230m7u34k",
+      "userId": "user_1768122706744",
+      "userName": "User",
+      "destination": "Any",
+      "preferredDates": "Flexible",
+      "tripType": "Leisure",
+      "budget": "Flexible",
+      "description": "",
+      "flexibleDates": true,
+      "createdAt": "2026-01-11T09:12:02.831Z",
+      "status": "active"
+    },
+    {
+      "id": "looking_1768122900060_ckn9bfna6",
+      "userId": "user_1768122850334",
+      "userName": "User",
+      "destination": "Any",
+      "preferredDates": "Flexible",
+      "tripType": "Leisure",
+      "budget": "Flexible",
+      "description": "",
+      "flexibleDates": true,
+      "createdAt": "2026-01-11T09:15:00.060Z",
+      "status": "active"
+    }
+  ]
+}

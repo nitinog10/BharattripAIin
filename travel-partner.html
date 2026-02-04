@@ -1,0 +1,1458 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Find Travel Partners - BharatTrip AI</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Axios for API calls -->
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    
+    <style>
+        @keyframes fade-in {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        @keyframes fade-in-up {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-in {
+            animation: fade-in 0.5s ease-out forwards;
+        }
+        .animate-fade-in-up {
+            animation: fade-in-up 0.5s ease-out forwards;
+        }
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #1e293b; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #4f46e5;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #6366f1;
+        }
+        .card-hover {
+            transition: all 0.3s ease;
+        }
+        .card-hover:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+        }
+    </style>
+    
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+        }
+    </script>
+</head>
+<body class="font-sans bg-gray-50 dark:bg-gray-900">
+    <div id="app" class="min-h-screen">
+        <!-- Header -->
+        <header class="bg-white dark:bg-gray-800 shadow-sm sticky top-0 z-50">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex justify-between items-center h-16">
+                    <div class="flex items-center space-x-4">
+                        <a href="bharattripai.html" class="text-2xl font-bold text-indigo-600 dark:text-indigo-400">
+                            🇮🇳 BharatTrip AI
+                        </a>
+                        <h1 class="text-xl font-semibold text-gray-800 dark:text-gray-200">
+                            Find Travel Partners
+                        </h1>
+                    </div>
+                    <div class="flex items-center space-x-4">
+                        <button onclick="toggleDarkMode()" class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700">
+                            <span id="theme-icon">🌙</span>
+                        </button>
+                        <span class="px-4 py-2 text-gray-700 dark:text-gray-300">
+                            <span id="user-name">User</span>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <!-- Tabs -->
+            <div class="flex space-x-4 mb-6 border-b border-gray-200 dark:border-gray-700 overflow-x-auto">
+                <button onclick="switchTab('feed')" id="tab-feed" 
+                    class="px-4 py-2 font-medium border-b-2 border-indigo-600 text-indigo-600 dark:text-indigo-400 whitespace-nowrap">
+                    Community Feed
+                </button>
+                <button onclick="switchTab('create')" id="tab-create"
+                    class="px-4 py-2 font-medium border-b-2 border-transparent text-gray-600 dark:text-gray-400 hover:text-indigo-600 whitespace-nowrap">
+                    Create Post
+                </button>
+                <button onclick="switchTab('requests')" id="tab-requests"
+                    class="px-4 py-2 font-medium border-b-2 border-transparent text-gray-600 dark:text-gray-400 hover:text-indigo-600 whitespace-nowrap relative">
+                    Join Requests
+                    <span id="requests-badge" class="hidden absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">0</span>
+                </button>
+                <button onclick="switchTab('looking')" id="tab-looking"
+                    class="px-4 py-2 font-medium border-b-2 border-transparent text-gray-600 dark:text-gray-400 hover:text-indigo-600 whitespace-nowrap">
+                    Looking to Join
+                </button>
+                <button onclick="switchTab('my-trips')" id="tab-my-trips"
+                    class="px-4 py-2 font-medium border-b-2 border-transparent text-gray-600 dark:text-gray-400 hover:text-indigo-600 whitespace-nowrap">
+                    My Trips
+                </button>
+            </div>
+
+            <!-- Feed Tab -->
+            <div id="content-feed" class="tab-content">
+                <!-- Filters -->
+                <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-4 mb-6">
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                        <input type="text" id="filter-destination" placeholder="Search destination..."
+                            class="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white">
+                        <select id="filter-type" class="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white">
+                            <option value="">All Trip Types</option>
+                            <option value="Leisure">Leisure</option>
+                            <option value="Adventure">Adventure</option>
+                            <option value="Cultural">Cultural</option>
+                            <option value="Business">Business</option>
+                            <option value="Family">Family</option>
+                        </select>
+                        <button onclick="applyFilters()" class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700">
+                            Apply Filters
+                        </button>
+                        <button onclick="clearFilters()" class="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-lg hover:bg-gray-300">
+                            Clear
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Posts Feed -->
+                <div id="posts-feed" class="space-y-6">
+                    <!-- Posts will be loaded here -->
+                </div>
+            </div>
+
+            <!-- Create Post Tab -->
+            <div id="content-create" class="tab-content hidden">
+                <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+                    <h2 class="text-2xl font-bold mb-6 text-gray-800 dark:text-gray-200">Create a Travel Post</h2>
+                    <form id="create-post-form" onsubmit="createTravelPost(event)" class="space-y-6">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label class="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">Destination *</label>
+                                <input type="text" id="post-destination" required
+                                    class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white"
+                                    placeholder="e.g., Goa, Kerala, Himachal Pradesh">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">Trip Type *</label>
+                                <select id="post-type" required
+                                    class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white">
+                                    <option value="Leisure">Leisure</option>
+                                    <option value="Adventure">Adventure</option>
+                                    <option value="Cultural">Cultural</option>
+                                    <option value="Business">Business</option>
+                                    <option value="Family">Family</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">Start Date *</label>
+                                <input type="date" id="post-start-date" required
+                                    class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">End Date *</label>
+                                <input type="date" id="post-end-date" required
+                                    class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">Budget</label>
+                                <select id="post-budget"
+                                    class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white">
+                                    <option value="Budget-friendly">Budget-friendly (Under ₹10k)</option>
+                                    <option value="Moderate">Moderate (₹10k-25k)</option>
+                                    <option value="Luxury">Luxury (₹25k+)</option>
+                                    <option value="Flexible">Flexible</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">Max Participants</label>
+                                <input type="number" id="post-max-participants" min="2" max="20" value="10"
+                                    class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">Description *</label>
+                            <textarea id="post-description" required rows="4"
+                                class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white"
+                                placeholder="Tell others about your trip plans, what you want to do, and what kind of travel partner you're looking for..."></textarea>
+                        </div>
+                        <div class="flex items-center">
+                            <input type="checkbox" id="post-allow-multiple" checked
+                                class="w-4 h-4 text-indigo-600 border-gray-300 rounded">
+                            <label class="ml-2 text-sm text-gray-700 dark:text-gray-300">Allow multiple people to join</label>
+                        </div>
+                        <button type="submit" class="w-full px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 font-medium">
+                            Create Travel Post
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Join Requests Management Tab -->
+            <div id="content-requests" class="tab-content hidden">
+                <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+                    <div class="flex items-center justify-between mb-6">
+                        <h2 class="text-2xl font-bold text-gray-800 dark:text-gray-200">
+                            🔔 Manage Join Requests
+                        </h2>
+                        <button onclick="loadJoinRequests()" class="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600">
+                            ↻ Refresh
+                        </button>
+                    </div>
+                    
+                    <p class="text-gray-600 dark:text-gray-400 mb-6">
+                        Review and respond to requests from travelers who want to join your trips.
+                    </p>
+                    
+                    <div id="join-requests-content" class="space-y-6">
+                        <!-- Requests will be loaded here -->
+                        <div class="text-center py-12 text-gray-500 dark:text-gray-400">
+                            Loading requests...
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Looking to Join Tab -->
+            <div id="content-looking" class="tab-content hidden">
+                <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6 mb-6">
+                    <h2 class="text-2xl font-bold mb-4 text-gray-800 dark:text-gray-200">Post That You're Looking to Join</h2>
+                    <form id="looking-post-form" onsubmit="createLookingPost(event)" class="space-y-4">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">Destination</label>
+                                <input type="text" id="looking-destination"
+                                    class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white"
+                                    placeholder="Any destination or specific place">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">Trip Type</label>
+                                <select id="looking-type"
+                                    class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white">
+                                    <option value="Leisure">Leisure</option>
+                                    <option value="Adventure">Adventure</option>
+                                    <option value="Cultural">Cultural</option>
+                                    <option value="Business">Business</option>
+                                    <option value="Family">Family</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">Preferred Dates</label>
+                                <input type="text" id="looking-dates"
+                                    class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white"
+                                    placeholder="e.g., December 2024 or Flexible">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">Budget</label>
+                                <select id="looking-budget"
+                                    class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white">
+                                    <option value="Flexible">Flexible</option>
+                                    <option value="Budget-friendly">Budget-friendly</option>
+                                    <option value="Moderate">Moderate</option>
+                                    <option value="Luxury">Luxury</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">Description</label>
+                            <textarea id="looking-description" rows="3"
+                                class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white"
+                                placeholder="Tell others what kind of trip you're interested in..."></textarea>
+                        </div>
+                        <button type="submit" class="px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700">
+                            Post
+                        </button>
+                    </form>
+                </div>
+
+                <div id="looking-posts" class="space-y-4">
+                    <!-- Looking posts will be loaded here -->
+                </div>
+            </div>
+
+            <!-- My Trips Tab -->
+            <div id="content-my-trips" class="tab-content hidden">
+                <div id="my-trips-content" class="space-y-6">
+                    <!-- My trips will be loaded here -->
+                </div>
+            </div>
+        </main>
+
+        <!-- Toast Notification -->
+        <div id="toast" class="fixed bottom-4 right-4 hidden px-6 py-3 rounded-lg shadow-lg text-white z-50 animate-fade-in">
+        </div>
+    </div>
+
+    <!-- Modal for Join Request -->
+    <div id="join-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+        <div class="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-md w-full mx-4 animate-fade-in-up">
+            <h3 class="text-xl font-bold mb-4 text-gray-800 dark:text-gray-200">Send Join Request</h3>
+            <form onsubmit="sendJoinRequest(event)">
+                <input type="hidden" id="modal-post-id">
+                <div class="mb-4">
+                    <label class="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">Message (optional)</label>
+                    <textarea id="join-message" rows="3"
+                        class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white"
+                        placeholder="Tell them why you'd like to join..."></textarea>
+                </div>
+                <div class="flex space-x-4">
+                    <button type="submit" class="flex-1 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700">
+                        Send Request
+                    </button>
+                    <button type="button" onclick="closeJoinModal()" class="flex-1 px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-lg hover:bg-gray-300">
+                        Cancel
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal for Join Requests (Post Owner View) -->
+    <div id="requests-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+        <div class="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-2xl w-full mx-4 max-h-[80vh] overflow-y-auto animate-fade-in-up">
+            <h3 class="text-xl font-bold mb-4 text-gray-800 dark:text-gray-200">Join Requests</h3>
+            <div id="requests-list" class="space-y-4">
+                <!-- Requests will be loaded here -->
+            </div>
+            <button onclick="closeRequestsModal()" class="mt-4 w-full px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-lg hover:bg-gray-300">
+                Close
+            </button>
+        </div>
+    </div>
+
+    <!-- Modal for Shared Plan -->
+    <div id="plan-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+        <div class="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto animate-fade-in-up">
+            <h3 class="text-xl font-bold mb-4 text-gray-800 dark:text-gray-200">Shared Trip Plan</h3>
+            <div id="shared-plan-content" class="space-y-6">
+                <!-- Shared plan will be loaded here -->
+            </div>
+            <button onclick="closePlanModal()" class="mt-4 w-full px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-lg hover:bg-gray-300">
+                Close
+            </button>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:3001/api';
+        let currentUser = null;
+        let currentTab = 'feed';
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            // Load user from localStorage
+            const users = JSON.parse(localStorage.getItem('bharattrip_users') || '[]');
+            const currentUserId = localStorage.getItem('currentUserId');
+            if (currentUserId) {
+                currentUser = users.find(u => u.id === currentUserId) || {
+                    id: currentUserId,
+                    firstName: 'User',
+                    lastName: ''
+                };
+            } else {
+                // Try to get from session or create demo user
+                currentUser = {
+                    id: `user_${Date.now()}`,
+                    firstName: 'User',
+                    lastName: ''
+                };
+            }
+            
+            document.getElementById('user-name').textContent = currentUser.firstName || 'User';
+            
+            // Check dark mode
+            if (localStorage.getItem('darkMode') === 'true') {
+                document.documentElement.classList.add('dark');
+                document.getElementById('theme-icon').textContent = '☀️';
+            }
+            
+            // Check for join parameter in URL
+            const urlParams = new URLSearchParams(window.location.search);
+            const joinPostId = urlParams.get('join');
+            if (joinPostId) {
+                // Show join modal for this post
+                setTimeout(() => {
+                    openJoinModal(joinPostId);
+                    showToast('You were invited to join a trip! Send a request below.', 'info');
+                }, 500);
+            }
+            
+            loadFeed();
+            
+            // Check for pending requests and update badge
+            checkPendingRequests();
+        });
+
+        // Dark mode toggle
+        function toggleDarkMode() {
+            document.documentElement.classList.toggle('dark');
+            const isDark = document.documentElement.classList.contains('dark');
+            localStorage.setItem('darkMode', isDark);
+            document.getElementById('theme-icon').textContent = isDark ? '☀️' : '🌙';
+        }
+
+        // Tab switching
+        function switchTab(tab) {
+            currentTab = tab;
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('[id^="tab-"]').forEach(el => {
+                el.classList.remove('border-indigo-600', 'text-indigo-600', 'dark:text-indigo-400');
+                el.classList.add('border-transparent');
+            });
+            
+            document.getElementById(`content-${tab}`).classList.remove('hidden');
+            const tabBtn = document.getElementById(`tab-${tab}`);
+            tabBtn.classList.add('border-indigo-600', 'text-indigo-600', 'dark:text-indigo-400');
+            tabBtn.classList.remove('border-transparent');
+            
+            if (tab === 'feed') loadFeed();
+            else if (tab === 'looking') loadLookingPosts();
+            else if (tab === 'my-trips') loadMyTrips();
+            else if (tab === 'requests') loadJoinRequests();
+        }
+
+        // Load all join requests for current user's posts
+        async function loadJoinRequests() {
+            try {
+                // First get all posts by this user
+                const response = await axios.get(`${API_BASE}/travel-posts?userId=${currentUser.id}`);
+                const myPosts = response.data.posts || [];
+                
+                if (myPosts.length === 0) {
+                    document.getElementById('join-requests-content').innerHTML = `
+                        <div class="text-center py-12">
+                            <div class="text-6xl mb-4">📝</div>
+                            <p class="text-gray-500 dark:text-gray-400 mb-4">You haven't created any travel posts yet.</p>
+                            <button onclick="switchTab('create')" class="px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700">
+                                Create Your First Post
+                            </button>
+                        </div>
+                    `;
+                    updateRequestsBadge(0);
+                    return;
+                }
+                
+                // Load join requests for each post
+                let allRequests = [];
+                for (const post of myPosts) {
+                    try {
+                        const requestsResponse = await axios.get(`${API_BASE}/travel-posts/${post.id}/join-requests?userId=${currentUser.id}`);
+                        const requests = (requestsResponse.data.requests || []).map(r => ({
+                            ...r,
+                            post: post
+                        }));
+                        allRequests = allRequests.concat(requests);
+                    } catch (err) {
+                        console.error('Failed to load requests for post', post.id, err);
+                    }
+                }
+                
+                // Separate pending and processed requests
+                const pendingRequests = allRequests.filter(r => r.status === 'pending');
+                const processedRequests = allRequests.filter(r => r.status !== 'pending');
+                
+                // Update badge
+                updateRequestsBadge(pendingRequests.length);
+                
+                if (allRequests.length === 0) {
+                    document.getElementById('join-requests-content').innerHTML = `
+                        <div class="text-center py-12">
+                            <div class="text-6xl mb-4">📭</div>
+                            <p class="text-gray-500 dark:text-gray-400">No join requests yet.</p>
+                            <p class="text-sm text-gray-400 dark:text-gray-500 mt-2">When someone wants to join your trip, their request will appear here.</p>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                let html = '';
+                
+                // Pending Requests Section
+                if (pendingRequests.length > 0) {
+                    html += `
+                        <div class="mb-8">
+                            <h3 class="text-lg font-bold text-gray-800 dark:text-gray-200 mb-4 flex items-center">
+                                <span class="w-3 h-3 bg-yellow-500 rounded-full mr-2 animate-pulse"></span>
+                                Pending Requests (${pendingRequests.length})
+                            </h3>
+                            <div class="space-y-4">
+                                ${pendingRequests.map(req => renderRequestCard(req, true)).join('')}
+                            </div>
+                        </div>
+                    `;
+                }
+                
+                // Processed Requests Section
+                if (processedRequests.length > 0) {
+                    html += `
+                        <div>
+                            <h3 class="text-lg font-bold text-gray-800 dark:text-gray-200 mb-4">
+                                Processed Requests (${processedRequests.length})
+                            </h3>
+                            <div class="space-y-4">
+                                ${processedRequests.map(req => renderRequestCard(req, false)).join('')}
+                            </div>
+                        </div>
+                    `;
+                }
+                
+                document.getElementById('join-requests-content').innerHTML = html;
+            } catch (error) {
+                console.error('Error loading join requests:', error);
+                document.getElementById('join-requests-content').innerHTML = `
+                    <div class="text-center py-12 text-red-500">
+                        Failed to load requests. Please try again.
+                    </div>
+                `;
+            }
+        }
+        
+        // Render a single request card
+        function renderRequestCard(req, isPending) {
+            const statusColors = {
+                pending: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400',
+                accepted: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400',
+                rejected: 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400'
+            };
+            
+            const statusIcons = {
+                pending: '⏳',
+                accepted: '✓',
+                rejected: '✗'
+            };
+            
+            return `
+                <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-5 border-l-4 ${isPending ? 'border-yellow-500' : req.status === 'accepted' ? 'border-green-500' : 'border-red-500'}">
+                    <div class="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
+                        <div class="flex-1">
+                            <div class="flex items-center gap-3 mb-2">
+                                <div class="w-10 h-10 rounded-full bg-indigo-100 dark:bg-indigo-900 flex items-center justify-center text-indigo-600 dark:text-indigo-400 font-bold">
+                                    ${(req.userName || 'U').charAt(0).toUpperCase()}
+                                </div>
+                                <div>
+                                    <p class="font-semibold text-gray-800 dark:text-gray-200">${escapeHtml(req.userName || 'Anonymous')}</p>
+                                    <p class="text-xs text-gray-500 dark:text-gray-400">${formatDate(req.createdAt)}</p>
+                                </div>
+                                <span class="px-2 py-1 rounded text-xs ${statusColors[req.status]}">
+                                    ${statusIcons[req.status]} ${req.status.charAt(0).toUpperCase() + req.status.slice(1)}
+                                </span>
+                            </div>
+                            
+                            <div class="mb-3 p-3 bg-white dark:bg-gray-800 rounded border border-gray-200 dark:border-gray-600">
+                                <p class="text-sm text-gray-600 dark:text-gray-400 mb-1">
+                                    Wants to join: <strong class="text-gray-800 dark:text-gray-200">${escapeHtml(req.post.destination)}</strong>
+                                </p>
+                                <p class="text-xs text-gray-500 dark:text-gray-400">
+                                    ${formatDate(req.post.startDate)} - ${formatDate(req.post.endDate)} • ${escapeHtml(req.post.tripType)}
+                                </p>
+                            </div>
+                            
+                            ${req.message ? `
+                                <div class="mb-3">
+                                    <p class="text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">Message:</p>
+                                    <p class="text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 p-3 rounded border border-gray-200 dark:border-gray-600 italic">
+                                        "${escapeHtml(req.message)}"
+                                    </p>
+                                </div>
+                            ` : ''}
+                        </div>
+                        
+                        ${isPending ? `
+                            <div class="flex flex-col gap-2 md:ml-4">
+                                <button onclick="handleRequestResponse('${req.post.id}', '${req.id}', 'accept', this)" 
+                                    class="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 font-medium flex items-center justify-center gap-2 transition-all">
+                                    <span>✓</span> Accept
+                                </button>
+                                <button onclick="handleRequestResponse('${req.post.id}', '${req.id}', 'reject', this)" 
+                                    class="px-6 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 font-medium flex items-center justify-center gap-2 transition-all">
+                                    <span>✗</span> Reject
+                                </button>
+                            </div>
+                        ` : `
+                            <div class="text-center md:ml-4">
+                                ${req.status === 'accepted' ? `
+                                    <button onclick="viewSharedPlan('${req.post.id}')" class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 text-sm">
+                                        View Plan
+                                    </button>
+                                ` : ''}
+                            </div>
+                        `}
+                    </div>
+                </div>
+            `;
+        }
+        
+        // Handle approve/reject from requests tab
+        async function handleRequestResponse(postId, requestId, action, buttonElement) {
+            try {
+                // Disable buttons during processing
+                const parentDiv = buttonElement.parentElement;
+                const buttons = parentDiv.querySelectorAll('button');
+                buttons.forEach(btn => {
+                    btn.disabled = true;
+                    btn.classList.add('opacity-50', 'cursor-not-allowed');
+                });
+                buttonElement.innerHTML = action === 'accept' ? '⏳ Accepting...' : '⏳ Rejecting...';
+                
+                await axios.post(`${API_BASE}/travel-posts/${postId}/join-requests/${requestId}/respond`, {
+                    action,
+                    userId: currentUser.id
+                });
+                
+                showToast(`Request ${action}ed successfully!`, 'success');
+                
+                // Reload the requests tab
+                loadJoinRequests();
+            } catch (error) {
+                showToast(error.response?.data?.error || `Failed to ${action} request`, 'error');
+                console.error(error);
+                
+                // Re-enable buttons on error
+                const parentDiv = buttonElement.parentElement;
+                const buttons = parentDiv.querySelectorAll('button');
+                buttons.forEach(btn => {
+                    btn.disabled = false;
+                    btn.classList.remove('opacity-50', 'cursor-not-allowed');
+                });
+                buttonElement.innerHTML = action === 'accept' ? '<span>✓</span> Accept' : '<span>✗</span> Reject';
+            }
+        }
+        
+        // Update the requests badge count
+        function updateRequestsBadge(count) {
+            const badge = document.getElementById('requests-badge');
+            if (count > 0) {
+                badge.textContent = count > 99 ? '99+' : count;
+                badge.classList.remove('hidden');
+                badge.classList.add('flex');
+            } else {
+                badge.classList.add('hidden');
+                badge.classList.remove('flex');
+            }
+        }
+        
+        // Check for pending requests on page load
+        async function checkPendingRequests() {
+            try {
+                const response = await axios.get(`${API_BASE}/travel-posts?userId=${currentUser.id}`);
+                const myPosts = response.data.posts || [];
+                
+                let totalPending = 0;
+                for (const post of myPosts) {
+                    try {
+                        const requestsResponse = await axios.get(`${API_BASE}/travel-posts/${post.id}/join-requests?userId=${currentUser.id}`);
+                        const pendingCount = (requestsResponse.data.requests || []).filter(r => r.status === 'pending').length;
+                        totalPending += pendingCount;
+                    } catch (err) {
+                        console.error('Failed to check requests for post', post.id);
+                    }
+                }
+                
+                updateRequestsBadge(totalPending);
+            } catch (error) {
+                console.error('Failed to check pending requests:', error);
+            }
+        }
+
+        // Load feed
+        async function loadFeed() {
+            try {
+                const response = await axios.get(`${API_BASE}/travel-posts`);
+                if (!response.data || !response.data.success) {
+                    throw new Error('Invalid response from server');
+                }
+                const posts = response.data.posts || [];
+                
+                // Load join requests for each post owned by current user
+                for (const post of posts) {
+                    if (post.userId === currentUser.id) {
+                        try {
+                            const requestsResponse = await axios.get(`${API_BASE}/travel-posts/${post.id}/join-requests?userId=${currentUser.id}`);
+                            post.joinRequests = requestsResponse.data.requests || [];
+                        } catch (err) {
+                            console.error('Failed to load requests for post', post.id, err);
+                            post.joinRequests = [];
+                        }
+                    }
+                }
+                
+                displayPosts(posts);
+            } catch (error) {
+                showToast('Failed to load posts: ' + (error.response?.data?.error || error.message), 'error');
+                console.error('Load feed error:', error);
+                document.getElementById('posts-feed').innerHTML = 
+                    '<div class="text-center py-12 text-red-500">Failed to load posts. Please check if the backend server is running.</div>';
+            }
+        }
+
+        // Display posts
+        function displayPosts(posts) {
+            const container = document.getElementById('posts-feed');
+            if (posts.length === 0) {
+                container.innerHTML = '<div class="text-center py-12 text-gray-500 dark:text-gray-400">No travel posts found. Be the first to create one!</div>';
+                return;
+            }
+            
+            container.innerHTML = posts.map(post => {
+                const isOwner = post.userId === currentUser.id;
+                const pendingRequests = (post.joinRequests || []).filter(r => r.status === 'pending');
+                const hasPendingRequests = pendingRequests.length > 0;
+                
+                return `
+                <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6 card-hover">
+                    <div class="flex justify-between items-start mb-4">
+                        <div>
+                            <h3 class="text-xl font-bold text-gray-800 dark:text-gray-200">${escapeHtml(post.destination)}</h3>
+                            <p class="text-sm text-gray-500 dark:text-gray-400">by ${escapeHtml(post.userName)} • ${formatDate(post.createdAt)}</p>
+                        </div>
+                        <span class="px-3 py-1 bg-indigo-100 dark:bg-indigo-900 text-indigo-800 dark:text-indigo-200 rounded-full text-sm">
+                            ${escapeHtml(post.tripType)}
+                        </span>
+                    </div>
+                    
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4 text-sm">
+                        <div>
+                            <span class="text-gray-500 dark:text-gray-400">Dates:</span>
+                            <p class="font-medium text-gray-800 dark:text-gray-200">${formatDate(post.startDate)} - ${formatDate(post.endDate)}</p>
+                        </div>
+                        <div>
+                            <span class="text-gray-500 dark:text-gray-400">Budget:</span>
+                            <p class="font-medium text-gray-800 dark:text-gray-200">${escapeHtml(post.budget)}</p>
+                        </div>
+                        <div>
+                            <span class="text-gray-500 dark:text-gray-400">Members:</span>
+                            <p class="font-medium text-gray-800 dark:text-gray-200">${post.joinedUsers?.length || 1}/${post.maxParticipants}</p>
+                        </div>
+                        <div>
+                            <span class="text-gray-500 dark:text-gray-400">Requests:</span>
+                            <p class="font-medium text-gray-800 dark:text-gray-200">
+                                ${pendingRequests.length} pending
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <p class="text-gray-700 dark:text-gray-300 mb-4">${escapeHtml(post.description)}</p>
+                    
+                    ${isOwner && hasPendingRequests ? `
+                        <!-- Join Requests Section (Inline for Post Owner) -->
+                        <div class="mb-4 p-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
+                            <h4 class="font-bold text-gray-800 dark:text-gray-200 mb-3 flex items-center">
+                                <span class="mr-2">🔔</span>
+                                Join Requests (${pendingRequests.length})
+                            </h4>
+                            <div class="space-y-3">
+                                ${pendingRequests.map(req => `
+                                    <div class="bg-white dark:bg-gray-700 p-3 rounded border border-gray-200 dark:border-gray-600">
+                                        <div class="flex justify-between items-start mb-2">
+                                            <div class="flex-1">
+                                                <p class="font-semibold text-gray-800 dark:text-gray-200">${escapeHtml(req.userName)}</p>
+                                                <p class="text-xs text-gray-500 dark:text-gray-400">${formatDate(req.createdAt)}</p>
+                                                ${req.message ? `<p class="text-sm text-gray-600 dark:text-gray-300 mt-2">${escapeHtml(req.message)}</p>` : ''}
+                                            </div>
+                                        </div>
+                                        <div class="flex space-x-2 mt-3">
+                                            <button onclick="respondToRequestInline('${post.id}', '${req.id}', 'accept', this)" 
+                                                class="flex-1 px-3 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm font-medium">
+                                                ✓ Accept
+                                            </button>
+                                            <button onclick="respondToRequestInline('${post.id}', '${req.id}', 'reject', this)" 
+                                                class="flex-1 px-3 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 text-sm font-medium">
+                                                ✗ Reject
+                                            </button>
+                                        </div>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    ` : ''}
+                    
+                    <div class="flex space-x-3">
+                        ${isOwner
+                            ? `<button onclick="viewSharedPlan('${post.id}')" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">
+                                Plan Trip
+                            </button>`
+                            : post.joinedUsers?.includes(currentUser.id)
+                                ? `<button onclick="viewSharedPlan('${post.id}')" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">
+                                    Plan Trip
+                                </button>`
+                                : `<button onclick="openJoinModal('${post.id}')" class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700">
+                                    Request to Join
+                                </button>`
+                        }
+                    </div>
+                </div>
+            `;
+            }).join('');
+        }
+
+        // Create travel post
+        async function createTravelPost(event) {
+            event.preventDefault();
+            try {
+                const postData = {
+                    userId: currentUser.id,
+                    userName: `${currentUser.firstName} ${currentUser.lastName}`.trim() || 'Anonymous',
+                    destination: document.getElementById('post-destination').value,
+                    startDate: document.getElementById('post-start-date').value,
+                    endDate: document.getElementById('post-end-date').value,
+                    tripType: document.getElementById('post-type').value,
+                    budget: document.getElementById('post-budget').value,
+                    description: document.getElementById('post-description').value,
+                    allowMultiple: document.getElementById('post-allow-multiple').checked,
+                    maxParticipants: parseInt(document.getElementById('post-max-participants').value)
+                };
+                
+                await axios.post(`${API_BASE}/travel-posts`, postData);
+                showToast('Travel post created successfully!', 'success');
+                document.getElementById('create-post-form').reset();
+                switchTab('feed');
+                loadFeed();
+            } catch (error) {
+                showToast('Failed to create post', 'error');
+                console.error(error);
+            }
+        }
+
+        // Create looking-to-join post
+        async function createLookingPost(event) {
+            event.preventDefault();
+            try {
+                const postData = {
+                    userId: currentUser.id,
+                    userName: `${currentUser.firstName} ${currentUser.lastName}`.trim() || 'Anonymous',
+                    destination: document.getElementById('looking-destination').value || 'Any',
+                    preferredDates: document.getElementById('looking-dates').value || 'Flexible',
+                    tripType: document.getElementById('looking-type').value,
+                    budget: document.getElementById('looking-budget').value,
+                    description: document.getElementById('looking-description').value
+                };
+                
+                await axios.post(`${API_BASE}/travel-posts/looking-to-join`, postData);
+                showToast('Post created successfully!', 'success');
+                document.getElementById('looking-post-form').reset();
+                loadLookingPosts();
+            } catch (error) {
+                showToast('Failed to create post', 'error');
+                console.error(error);
+            }
+        }
+
+        // Load looking-to-join posts
+        async function loadLookingPosts() {
+            try {
+                const response = await axios.get(`${API_BASE}/travel-posts/looking-to-join`);
+                const posts = response.data.posts || [];
+                const container = document.getElementById('looking-posts');
+                
+                if (posts.length === 0) {
+                    container.innerHTML = '<div class="text-center py-12 text-gray-500 dark:text-gray-400">No posts found.</div>';
+                    return;
+                }
+                
+                container.innerHTML = posts.map(post => `
+                    <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-4 card-hover">
+                        <div class="flex justify-between items-start mb-2">
+                            <h4 class="font-bold text-gray-800 dark:text-gray-200">${escapeHtml(post.userName)}</h4>
+                            <span class="text-sm text-gray-500 dark:text-gray-400">${formatDate(post.createdAt)}</span>
+                        </div>
+                        <p class="text-sm text-gray-600 dark:text-gray-400 mb-2">
+                            <strong>Destination:</strong> ${escapeHtml(post.destination)} • 
+                            <strong>Dates:</strong> ${escapeHtml(post.preferredDates)} • 
+                            <strong>Type:</strong> ${escapeHtml(post.tripType)} • 
+                            <strong>Budget:</strong> ${escapeHtml(post.budget)}
+                        </p>
+                        <p class="text-gray-700 dark:text-gray-300">${escapeHtml(post.description)}</p>
+                    </div>
+                `).join('');
+            } catch (error) {
+                showToast('Failed to load posts', 'error');
+                console.error(error);
+            }
+        }
+
+        // Load my trips
+        async function loadMyTrips() {
+            try {
+                const response = await axios.get(`${API_BASE}/travel-posts?userId=${currentUser.id}`);
+                const myPosts = response.data.posts || [];
+                
+                // Also get trips user joined
+                const allResponse = await axios.get(`${API_BASE}/travel-posts`);
+                const joinedTrips = (allResponse.data.posts || []).filter(p => 
+                    p.joinedUsers?.includes(currentUser.id) && p.userId !== currentUser.id
+                );
+                
+                const container = document.getElementById('my-trips-content');
+                container.innerHTML = `
+                    <div class="mb-6">
+                        <h2 class="text-2xl font-bold mb-4 text-gray-800 dark:text-gray-200">My Created Posts</h2>
+                        ${myPosts.length === 0 
+                            ? '<p class="text-gray-500 dark:text-gray-400">You haven\'t created any posts yet.</p>'
+                            : '<div class="space-y-4">' + displayPostsSimple(myPosts) + '</div>'
+                        }
+                    </div>
+                    <div>
+                        <h2 class="text-2xl font-bold mb-4 text-gray-800 dark:text-gray-200">Trips I Joined</h2>
+                        ${joinedTrips.length === 0
+                            ? '<p class="text-gray-500 dark:text-gray-400">You haven\'t joined any trips yet.</p>'
+                            : '<div class="space-y-4">' + displayPostsSimple(joinedTrips) + '</div>'
+                        }
+                    </div>
+                `;
+            } catch (error) {
+                showToast('Failed to load trips', 'error');
+                console.error(error);
+            }
+        }
+
+        function displayPostsSimple(posts) {
+            return posts.map(post => `
+                <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-4 card-hover">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <h3 class="font-bold text-gray-800 dark:text-gray-200">${escapeHtml(post.destination)}</h3>
+                            <p class="text-sm text-gray-500 dark:text-gray-400">${formatDate(post.startDate)} - ${formatDate(post.endDate)}</p>
+                        </div>
+                        <button onclick="viewSharedPlan('${post.id}')" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">
+                            Plan Trip
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Join request modals
+        function openJoinModal(postId) {
+            document.getElementById('modal-post-id').value = postId;
+            document.getElementById('join-modal').classList.remove('hidden');
+            document.getElementById('join-modal').classList.add('flex');
+        }
+
+        function closeJoinModal() {
+            document.getElementById('join-modal').classList.add('hidden');
+            document.getElementById('join-modal').classList.remove('flex');
+            document.getElementById('join-message').value = '';
+        }
+
+        async function sendJoinRequest(event) {
+            event.preventDefault();
+            try {
+                const postId = document.getElementById('modal-post-id').value;
+                const message = document.getElementById('join-message').value;
+                
+                await axios.post(`${API_BASE}/travel-posts/${postId}/join-request`, {
+                    userId: currentUser.id,
+                    userName: `${currentUser.firstName} ${currentUser.lastName}`.trim() || 'Anonymous',
+                    message
+                });
+                
+                showToast('Join request sent!', 'success');
+                closeJoinModal();
+                loadFeed();
+            } catch (error) {
+                showToast(error.response?.data?.error || 'Failed to send request', 'error');
+                console.error(error);
+            }
+        }
+
+        // View join requests (for post owner)
+        async function viewJoinRequests(postId) {
+            try {
+                const response = await axios.get(`${API_BASE}/travel-posts/${postId}/join-requests?userId=${currentUser.id}`);
+                const requests = response.data.requests || [];
+                
+                const container = document.getElementById('requests-list');
+                if (requests.length === 0) {
+                    container.innerHTML = '<p class="text-gray-500 dark:text-gray-400">No pending requests.</p>';
+                } else {
+                    container.innerHTML = requests.map(req => `
+                        <div class="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+                            <div class="flex justify-between items-start mb-2">
+                                <div>
+                                    <p class="font-bold text-gray-800 dark:text-gray-200">${escapeHtml(req.userName)}</p>
+                                    <p class="text-sm text-gray-500 dark:text-gray-400">${formatDate(req.createdAt)}</p>
+                                </div>
+                                <span class="px-2 py-1 rounded text-sm ${req.status === 'pending' ? 'bg-yellow-100 text-yellow-800' : req.status === 'accepted' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}">
+                                    ${req.status}
+                                </span>
+                            </div>
+                            ${req.message ? `<p class="text-gray-700 dark:text-gray-300 mb-3">${escapeHtml(req.message)}</p>` : ''}
+                            ${req.status === 'pending' ? `
+                                <div class="flex space-x-2">
+                                    <button onclick="respondToRequest('${postId}', '${req.id}', 'accept')" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">
+                                        Accept
+                                    </button>
+                                    <button onclick="respondToRequest('${postId}', '${req.id}', 'reject')" class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700">
+                                        Reject
+                                    </button>
+                                </div>
+                            ` : ''}
+                        </div>
+                    `).join('');
+                }
+                
+                document.getElementById('requests-modal').classList.remove('hidden');
+                document.getElementById('requests-modal').classList.add('flex');
+            } catch (error) {
+                showToast('Failed to load requests', 'error');
+                console.error(error);
+            }
+        }
+
+        function closeRequestsModal() {
+            document.getElementById('requests-modal').classList.add('hidden');
+            document.getElementById('requests-modal').classList.remove('flex');
+        }
+
+        async function respondToRequest(postId, requestId, action) {
+            try {
+                await axios.post(`${API_BASE}/travel-posts/${postId}/join-requests/${requestId}/respond`, {
+                    action,
+                    userId: currentUser.id
+                });
+                
+                showToast(`Request ${action}ed!`, 'success');
+                viewJoinRequests(postId);
+                loadFeed();
+            } catch (error) {
+                showToast(error.response?.data?.error || 'Failed to respond', 'error');
+                console.error(error);
+            }
+        }
+
+        // Respond to request inline (from main feed)
+        async function respondToRequestInline(postId, requestId, action, buttonElement) {
+            try {
+                buttonElement.disabled = true;
+                buttonElement.textContent = action === 'accept' ? 'Accepting...' : 'Rejecting...';
+                
+                await axios.post(`${API_BASE}/travel-posts/${postId}/join-requests/${requestId}/respond`, {
+                    action,
+                    userId: currentUser.id
+                });
+                
+                showToast(`Request ${action}ed!`, 'success');
+                
+                // Reload feed to update UI
+                loadFeed();
+            } catch (error) {
+                showToast(error.response?.data?.error || 'Failed to respond', 'error');
+                console.error(error);
+                buttonElement.disabled = false;
+                buttonElement.textContent = action === 'accept' ? '✓ Accept' : '✗ Reject';
+            }
+        }
+
+        // Shared plan modal
+        async function viewSharedPlan(postId) {
+            try {
+                const response = await axios.get(`${API_BASE}/travel-posts/${postId}/plan?userId=${currentUser.id}`);
+                const plan = response.data.plan;
+                const post = response.data.post;
+                
+                const isOwner = post.userId === currentUser.id;
+                const isMember = post.joinedUsers?.includes(currentUser.id);
+                
+                // Get pending requests if owner
+                let pendingRequests = [];
+                if (isOwner) {
+                    try {
+                        const requestsResponse = await axios.get(`${API_BASE}/travel-posts/${postId}/join-requests?userId=${currentUser.id}`);
+                        pendingRequests = (requestsResponse.data.requests || []).filter(r => r.status === 'pending');
+                    } catch (err) {
+                        console.error('Failed to load requests:', err);
+                    }
+                }
+                
+                const container = document.getElementById('shared-plan-content');
+                container.innerHTML = `
+                    <!-- Trip Header -->
+                    <div class="mb-6 p-4 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-lg text-white">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <h4 class="text-2xl font-bold mb-2">📍 ${escapeHtml(post.destination)}</h4>
+                                <p class="text-indigo-100">
+                                    <span class="mr-4">📅 ${formatDate(post.startDate)} - ${formatDate(post.endDate)}</span>
+                                    <span class="mr-4">🏷️ ${escapeHtml(post.tripType)}</span>
+                                    <span>💰 ${escapeHtml(post.budget)}</span>
+                                </p>
+                            </div>
+                            <div class="text-right">
+                                <p class="text-indigo-100 text-sm">Members</p>
+                                <p class="text-2xl font-bold">${plan.members.length}/${post.maxParticipants}</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Join Requests Section (Only for Owner) -->
+                    ${isOwner && pendingRequests.length > 0 ? `
+                        <div class="mb-6 p-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-300 dark:border-yellow-700 rounded-lg">
+                            <h5 class="font-bold text-yellow-800 dark:text-yellow-200 mb-3 flex items-center">
+                                <span class="w-3 h-3 bg-yellow-500 rounded-full mr-2 animate-pulse"></span>
+                                Pending Join Requests (${pendingRequests.length})
+                            </h5>
+                            <div class="space-y-3 max-h-60 overflow-y-auto">
+                                ${pendingRequests.map(req => `
+                                    <div class="bg-white dark:bg-gray-700 p-3 rounded-lg border border-gray-200 dark:border-gray-600">
+                                        <div class="flex items-center justify-between">
+                                            <div class="flex items-center gap-3">
+                                                <div class="w-10 h-10 rounded-full bg-indigo-100 dark:bg-indigo-900 flex items-center justify-center text-indigo-600 dark:text-indigo-400 font-bold">
+                                                    ${(req.userName || 'U').charAt(0).toUpperCase()}
+                                                </div>
+                                                <div>
+                                                    <p class="font-semibold text-gray-800 dark:text-gray-200">${escapeHtml(req.userName)}</p>
+                                                    <p class="text-xs text-gray-500 dark:text-gray-400">${formatDate(req.createdAt)}</p>
+                                                    ${req.message ? `<p class="text-sm text-gray-600 dark:text-gray-300 mt-1 italic">"${escapeHtml(req.message)}"</p>` : ''}
+                                                </div>
+                                            </div>
+                                            <div class="flex gap-2">
+                                                <button onclick="handlePlanRequestResponse('${postId}', '${req.id}', 'accept', this)" 
+                                                    class="px-3 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm font-medium">
+                                                    ✓ Accept
+                                                </button>
+                                                <button onclick="handlePlanRequestResponse('${postId}', '${req.id}', 'reject', this)" 
+                                                    class="px-3 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 text-sm font-medium">
+                                                    ✗ Reject
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                `).join('')}
+                            </div>
+                            <a href="#" onclick="switchTab('requests'); closePlanModal(); return false;" 
+                                class="text-indigo-600 dark:text-indigo-400 text-sm mt-3 inline-block hover:underline">
+                                View all requests →
+                            </a>
+                        </div>
+                    ` : ''}
+                    
+                    <!-- Invite Others Section (Only for Owner) -->
+                    ${isOwner && plan.members.length < post.maxParticipants ? `
+                        <div class="mb-6 p-4 bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-200 dark:border-indigo-700 rounded-lg">
+                            <h5 class="font-bold text-indigo-800 dark:text-indigo-200 mb-2">👥 Invite Travel Partners</h5>
+                            <p class="text-sm text-indigo-600 dark:text-indigo-300 mb-3">Share your trip link so others can request to join!</p>
+                            <div class="flex gap-2">
+                                <input type="text" readonly value="${window.location.origin}/travel-partner.html?join=${postId}" 
+                                    id="share-link-${postId}"
+                                    class="flex-1 px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-sm">
+                                <button onclick="copyShareLink('${postId}')" class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 text-sm">
+                                    📋 Copy
+                                </button>
+                            </div>
+                        </div>
+                    ` : ''}
+                    
+                    <!-- Trip Members -->
+                    <div class="mb-6">
+                        <h5 class="font-bold text-gray-800 dark:text-gray-200 mb-3">👥 Trip Members</h5>
+                        <div class="flex flex-wrap gap-2">
+                            ${plan.members.map((memberId, idx) => `
+                                <div class="px-3 py-2 bg-gray-100 dark:bg-gray-700 rounded-full text-sm flex items-center gap-2">
+                                    <div class="w-6 h-6 rounded-full bg-indigo-500 flex items-center justify-center text-white text-xs font-bold">
+                                        ${idx + 1}
+                                    </div>
+                                    <span class="text-gray-800 dark:text-gray-200">${memberId === post.userId ? 'Owner' : 'Member'}</span>
+                                    ${memberId === currentUser.id ? '<span class="text-indigo-600 dark:text-indigo-400">(You)</span>' : ''}
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                    
+                    <!-- Itinerary Section -->
+                    <div class="mb-6 p-4 bg-white dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600">
+                        <div class="flex justify-between items-center mb-4">
+                            <h5 class="font-bold text-gray-800 dark:text-gray-200">🗺️ Trip Itinerary</h5>
+                            ${(isOwner || isMember) ? `
+                                <button onclick="createItinerary('${postId}', '${post.destination}', '${post.startDate}', '${post.endDate}', '${post.tripType}', '${post.budget}')" 
+                                    class="px-4 py-2 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-lg hover:from-indigo-700 hover:to-purple-700 text-sm font-medium">
+                                    ✨ Generate AI Itinerary
+                                </button>
+                            ` : ''}
+                        </div>
+                        <div id="itinerary-content-${postId}">
+                            ${plan.itinerary ? renderItinerary(plan.itinerary) : `
+                                <div class="text-center py-8 text-gray-500 dark:text-gray-400">
+                                    <div class="text-4xl mb-3">🗺️</div>
+                                    <p>No itinerary created yet.</p>
+                                    <p class="text-sm mt-1">Click "Generate AI Itinerary" to create a detailed plan!</p>
+                                </div>
+                            `}
+                        </div>
+                    </div>
+                    
+                    <!-- Activities Section -->
+                    <div class="mb-6">
+                        <h5 class="font-bold mb-3 text-gray-800 dark:text-gray-200">📋 Activities</h5>
+                        <div id="plan-activities" class="space-y-2 mb-3">
+                            ${plan.activities.map(a => `
+                                <div class="p-3 bg-gray-50 dark:bg-gray-700 rounded-lg border-l-4 border-indigo-500">
+                                    <p class="font-medium text-gray-800 dark:text-gray-200">${escapeHtml(a.title || a.name || 'Activity')}</p>
+                                    ${a.description ? `<p class="text-sm text-gray-600 dark:text-gray-400 mt-1">${escapeHtml(a.description)}</p>` : ''}
+                                </div>
+                            `).join('')}
+                            ${plan.activities.length === 0 ? '<p class="text-gray-500 dark:text-gray-400 text-sm">No activities added yet.</p>' : ''}
+                        </div>
+                        ${(isOwner || isMember) ? `
+                            <button onclick="addPlanItem('${postId}', 'activity')" class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 text-sm">
+                                + Add Activity
+                            </button>
+                        ` : ''}
+                    </div>
+                    
+                    <!-- Notes Section -->
+                    <div class="mb-6">
+                        <h5 class="font-bold mb-3 text-gray-800 dark:text-gray-200">📝 Notes</h5>
+                        <div id="plan-notes" class="space-y-2 mb-3">
+                            ${plan.notes.map(n => `
+                                <div class="p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                                    <p class="text-gray-800 dark:text-gray-200">${escapeHtml(n.content || n.note || 'Note')}</p>
+                                </div>
+                            `).join('')}
+                            ${plan.notes.length === 0 ? '<p class="text-gray-500 dark:text-gray-400 text-sm">No notes added yet.</p>' : ''}
+                        </div>
+                        ${(isOwner || isMember) ? `
+                            <button onclick="addPlanItem('${postId}', 'note')" class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 text-sm">
+                                + Add Note
+                            </button>
+                        ` : ''}
+                    </div>
+                `;
+                
+                document.getElementById('plan-modal').classList.remove('hidden');
+                document.getElementById('plan-modal').classList.add('flex');
+            } catch (error) {
+                showToast(error.response?.data?.error || 'Failed to load plan', 'error');
+                console.error(error);
+            }
+        }
+        
+        // Handle request response from within Plan modal
+        async function handlePlanRequestResponse(postId, requestId, action, buttonElement) {
+            try {
+                const parentDiv = buttonElement.parentElement;
+                const buttons = parentDiv.querySelectorAll('button');
+                buttons.forEach(btn => {
+                    btn.disabled = true;
+                    btn.classList.add('opacity-50');
+                });
+                buttonElement.textContent = action === 'accept' ? '⏳...' : '⏳...';
+                
+                await axios.post(`${API_BASE}/travel-posts/${postId}/join-requests/${requestId}/respond`, {
+                    action,
+                    userId: currentUser.id
+                });
+                
+                showToast(`Request ${action}ed!`, 'success');
+                
+                // Refresh the plan view
+                viewSharedPlan(postId);
+                checkPendingRequests();
+            } catch (error) {
+                showToast(error.response?.data?.error || `Failed to ${action}`, 'error');
+                console.error(error);
+            }
+        }
+        
+        // Copy share link
+        function copyShareLink(postId) {
+            const input = document.getElementById(`share-link-${postId}`);
+            input.select();
+            document.execCommand('copy');
+            showToast('Link copied to clipboard!', 'success');
+        }
+        
+        // Render itinerary
+        function renderItinerary(itinerary) {
+            if (!itinerary || !itinerary.days || itinerary.days.length === 0) {
+                return `<div class="text-center py-4 text-gray-500 dark:text-gray-400">No itinerary available.</div>`;
+            }
+            
+            return `
+                <div class="space-y-4">
+                    ${itinerary.days.map((day, idx) => `
+                        <div class="border border-gray-200 dark:border-gray-600 rounded-lg overflow-hidden">
+                            <div class="bg-indigo-50 dark:bg-indigo-900/30 px-4 py-3 border-b border-gray-200 dark:border-gray-600">
+                                <h6 class="font-bold text-indigo-800 dark:text-indigo-200">
+                                    Day ${idx + 1}${day.title ? `: ${escapeHtml(day.title)}` : ''}
+                                </h6>
+                                ${day.date ? `<p class="text-sm text-indigo-600 dark:text-indigo-400">${formatDate(day.date)}</p>` : ''}
+                            </div>
+                            <div class="p-4 space-y-3">
+                                ${(day.activities || day.items || []).map(activity => `
+                                    <div class="flex gap-3 items-start">
+                                        <div class="w-8 h-8 rounded-full bg-indigo-100 dark:bg-indigo-900 flex items-center justify-center text-indigo-600 dark:text-indigo-400 flex-shrink-0">
+                                            ${activity.time ? `<span class="text-xs">${escapeHtml(activity.time.substring(0, 5))}</span>` : '📍'}
+                                        </div>
+                                        <div class="flex-1">
+                                            <p class="font-medium text-gray-800 dark:text-gray-200">${escapeHtml(activity.name || activity.title || activity.activity || 'Activity')}</p>
+                                            ${activity.description ? `<p class="text-sm text-gray-600 dark:text-gray-400">${escapeHtml(activity.description)}</p>` : ''}
+                                            ${activity.location ? `<p class="text-sm text-gray-500 dark:text-gray-500">📍 ${escapeHtml(activity.location)}</p>` : ''}
+                                            ${activity.cost ? `<p class="text-sm text-green-600 dark:text-green-400">💰 ${escapeHtml(activity.cost)}</p>` : ''}
+                                        </div>
+                                    </div>
+                                `).join('')}
+                                ${(!day.activities || day.activities.length === 0) && (!day.items || day.items.length === 0) ? 
+                                    `<p class="text-gray-500 dark:text-gray-400 text-sm">No activities planned for this day.</p>` : ''}
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+                ${itinerary.tips ? `
+                    <div class="mt-4 p-4 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg">
+                        <h6 class="font-bold text-yellow-800 dark:text-yellow-200 mb-2">💡 Travel Tips</h6>
+                        <p class="text-yellow-700 dark:text-yellow-300 text-sm">${escapeHtml(itinerary.tips)}</p>
+                    </div>
+                ` : ''}
+                ${itinerary.estimatedBudget ? `
+                    <div class="mt-4 p-4 bg-green-50 dark:bg-green-900/20 rounded-lg">
+                        <h6 class="font-bold text-green-800 dark:text-green-200 mb-2">💰 Estimated Budget</h6>
+                        <p class="text-green-700 dark:text-green-300">${escapeHtml(itinerary.estimatedBudget)}</p>
+                    </div>
+                ` : ''}
+            `;
+        }
+        
+        // Create AI Itinerary
+        async function createItinerary(postId, destination, startDate, endDate, tripType, budget) {
+            try {
+                const container = document.getElementById(`itinerary-content-${postId}`);
+                container.innerHTML = `
+                    <div class="text-center py-8">
+                        <div class="animate-spin text-4xl mb-3">🔄</div>
+                        <p class="text-gray-600 dark:text-gray-400">Generating your AI-powered itinerary...</p>
+                        <p class="text-sm text-gray-500 dark:text-gray-500 mt-1">This may take a moment</p>
+                    </div>
+                `;
+                
+                // Calculate number of days
+                const start = new Date(startDate);
+                const end = new Date(endDate);
+                const days = Math.ceil((end - start) / (1000 * 60 * 60 * 24)) + 1;
+                
+                const response = await axios.post(`${API_BASE}/travel-posts/${postId}/itinerary`, {
+                    userId: currentUser.id,
+                    destination,
+                    startDate,
+                    endDate,
+                    days,
+                    tripType,
+                    budget
+                });
+                
+                if (response.data.success && response.data.itinerary) {
+                    showToast('Itinerary created successfully!', 'success');
+                    // Refresh the plan view to show the new itinerary
+                    viewSharedPlan(postId);
+                } else {
+                    throw new Error('Failed to generate itinerary');
+                }
+            } catch (error) {
+                console.error('Itinerary creation error:', error);
+                showToast(error.response?.data?.error || 'Failed to create itinerary', 'error');
+                document.getElementById(`itinerary-content-${postId}`).innerHTML = `
+                    <div class="text-center py-8 text-red-500">
+                        <div class="text-4xl mb-3">❌</div>
+                        <p>Failed to generate itinerary. Please try again.</p>
+                    </div>
+                `;
+            }
+        }
+
+        function closePlanModal() {
+            document.getElementById('plan-modal').classList.add('hidden');
+            document.getElementById('plan-modal').classList.remove('flex');
+        }
+
+        function addPlanItem(postId, type) {
+            const title = prompt(type === 'activity' ? 'Activity name:' : 'Note:');
+            if (!title) return;
+            
+            const description = type === 'activity' ? prompt('Description (optional):') : null;
+            
+            axios.post(`${API_BASE}/travel-posts/${postId}/plan`, {
+                userId: currentUser.id,
+                type,
+                data: {
+                    title: type === 'activity' ? title : undefined,
+                    name: type === 'activity' ? title : undefined,
+                    content: type === 'note' ? title : undefined,
+                    note: type === 'note' ? title : undefined,
+                    description: description || undefined
+                }
+            }).then(() => {
+                showToast('Added successfully!', 'success');
+                viewSharedPlan(postId);
+            }).catch(error => {
+                showToast('Failed to add', 'error');
+                console.error(error);
+            });
+        }
+
+        // Filters
+        function applyFilters() {
+            const destination = document.getElementById('filter-destination').value;
+            const type = document.getElementById('filter-type').value;
+            
+            let url = `${API_BASE}/travel-posts?`;
+            if (destination) url += `destination=${encodeURIComponent(destination)}&`;
+            if (type) url += `tripType=${encodeURIComponent(type)}&`;
+            
+            axios.get(url).then(response => {
+                displayPosts(response.data.posts || []);
+            }).catch(error => {
+                showToast('Failed to filter posts', 'error');
+                console.error(error);
+            });
+        }
+
+        function clearFilters() {
+            document.getElementById('filter-destination').value = '';
+            document.getElementById('filter-type').value = '';
+            loadFeed();
+        }
+
+        // Utility functions
+        function showToast(message, type = 'info') {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.className = `fixed bottom-4 right-4 px-6 py-3 rounded-lg shadow-lg text-white z-50 animate-fade-in ${
+                type === 'success' ? 'bg-green-500' : type === 'error' ? 'bg-red-500' : 'bg-blue-500'
+            }`;
+            toast.classList.remove('hidden');
+            
+            setTimeout(() => {
+                toast.classList.add('hidden');
+            }, 3000);
+        }
+
+        function formatDate(dateString) {
+            if (!dateString) return 'N/A';
+            const date = new Date(dateString);
+            return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+    </script>
+</body>
+</html>

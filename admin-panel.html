@@ -1,0 +1,1142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel - BharatTrip AI</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/react@17/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@17/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <style>
+        @keyframes fade-in {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-in { animation: fade-in 0.3s ease-out; }
+    </style>
+</head>
+<body class="font-sans bg-gray-100 dark:bg-gray-900">
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        // Admin Authentication Component
+        function AdminAuth({ onSuccess }) {
+            const [adminId, setAdminId] = useState('');
+            const [password, setPassword] = useState('');
+            const [error, setError] = useState('');
+            const [darkMode, setDarkMode] = useState(localStorage.getItem('darkMode') === 'true');
+
+            const handleSubmit = (e) => {
+                e.preventDefault();
+                // Default admin credentials: ID: admin, Password: admin123
+                if (adminId === 'admin' && password === 'admin123') {
+                    setError('');
+                    onSuccess();
+                } else {
+                    setError('Invalid Admin ID or Password');
+                }
+            };
+
+            return (
+                <div className="min-h-screen flex items-center justify-center p-4">
+                    <div className={`${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-xl p-8 w-full max-w-md shadow-2xl animate-fade-in`}>
+                        <div className="text-center mb-6">
+                            <h1 className={`text-3xl font-bold mb-2 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                                Admin Panel
+                            </h1>
+                            <p className={`${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                                BharatTrip AI Location Management
+                            </p>
+                        </div>
+                        <form onSubmit={handleSubmit} className="space-y-4">
+                            <div>
+                                <label className={`block text-sm font-medium mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                                    Admin ID
+                                </label>
+                                <input
+                                    type="text"
+                                    value={adminId}
+                                    onChange={(e) => setAdminId(e.target.value)}
+                                    className={`w-full px-4 py-2 rounded-lg border ${
+                                        darkMode 
+                                            ? 'bg-gray-700 border-gray-600 text-white' 
+                                            : 'bg-white border-gray-300 text-gray-900'
+                                    } focus:outline-none focus:ring-2 focus:ring-blue-500`}
+                                    placeholder="Enter Admin ID"
+                                    required
+                                />
+                            </div>
+                            <div>
+                                <label className={`block text-sm font-medium mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                                    Password
+                                </label>
+                                <input
+                                    type="password"
+                                    value={password}
+                                    onChange={(e) => setPassword(e.target.value)}
+                                    className={`w-full px-4 py-2 rounded-lg border ${
+                                        darkMode 
+                                            ? 'bg-gray-700 border-gray-600 text-white' 
+                                            : 'bg-white border-gray-300 text-gray-900'
+                                    } focus:outline-none focus:ring-2 focus:ring-blue-500`}
+                                    placeholder="Enter Password"
+                                    required
+                                />
+                            </div>
+                            {error && (
+                                <div className="text-red-500 text-sm bg-red-50 dark:bg-red-900/20 p-3 rounded-lg">{error}</div>
+                            )}
+                            <button
+                                type="submit"
+                                className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg font-semibold transition-colors"
+                            >
+                                Login
+                            </button>
+                        </form>
+                        <div className="mt-4 text-center">
+                            <button
+                                onClick={() => setDarkMode(!darkMode)}
+                                className={`p-2 rounded-full transition-colors ${darkMode ? 'bg-gray-700 text-yellow-400' : 'bg-gray-200 text-gray-700'}`}
+                            >
+                                {darkMode ? '☀️' : '🌙'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        // Location Management Panel
+        function LocationAdminPanel() {
+            const [locations, setLocations] = useState([]);
+            const [selectedLocation, setSelectedLocation] = useState(null);
+            const [isAddingNew, setIsAddingNew] = useState(false);
+            const [formData, setFormData] = useState({
+                name: '',
+                location: '',
+                category: 'sacred',
+                image: '',
+                plyFile: '',
+                glbFile: '',
+                guideName: '',
+                guidePhone: '',
+                guideEmail: '',
+                guideLanguages: '',
+                guideExperience: '',
+                coordinates: { lat: '', lng: '' },
+                hotels: []
+            });
+            const [hotelForm, setHotelForm] = useState({
+                name: '',
+                address: '',
+                phone: '',
+                email: '',
+                price: '',
+                rating: '',
+                amenities: '',
+                website: '',
+                image: ''
+            });
+            const [imagePreview, setImagePreview] = useState(null);
+            const [hotelImagePreview, setHotelImagePreview] = useState(null);
+            const [plyFileUrl, setPlyFileUrl] = useState(null);
+            const [glbFileUrl, setGlbFileUrl] = useState(null);
+            const [darkMode, setDarkMode] = useState(localStorage.getItem('darkMode') === 'true');
+            const [searchTerm, setSearchTerm] = useState('');
+
+            useEffect(() => {
+                loadLocations();
+                
+                // Listen for storage changes (when main page updates locations)
+                const handleStorageChange = () => {
+                    loadLocations();
+                };
+                window.addEventListener('storage', handleStorageChange);
+                
+                return () => {
+                    window.removeEventListener('storage', handleStorageChange);
+                };
+            }, []);
+
+            const loadLocations = () => {
+                const saved = localStorage.getItem('adminLocations');
+                if (saved) {
+                    const parsedLocations = JSON.parse(saved);
+                    console.log('Loaded locations from localStorage:', parsedLocations.length);
+                    setLocations(parsedLocations);
+                } else {
+                    // Initialize with default locations
+                    const defaultLocations = [
+                        // Sacred destinations
+                        { id: 1, name: 'Golden Temple', location: 'Amritsar, Punjab', category: 'sacred', image: 'religion images data/golden temple amritsar.jpeg', updated: false },
+                        { id: 2, name: 'Kedarnath Temple', location: 'Uttarakhand', category: 'sacred', image: 'religion images data/kedarnath.jpg', updated: false },
+                        { id: 3, name: 'Jagannath Temple', location: 'Puri, Odisha', category: 'sacred', image: 'religion images data/jagannath puri.jpg', updated: false },
+                        { id: 4, name: 'Ajmer Sharif Dargah', location: 'Ajmer, Rajasthan', category: 'sacred', image: 'religion images data/sharif dargah ajmer.jpg', updated: false },
+                        { id: 5, name: 'Shirdi Sai Baba Temple', location: 'Shirdi, Maharashtra', category: 'sacred', image: 'religion images data/shirdi.jpg', updated: false },
+                        { id: 6, name: 'Kamakhya Temple', location: 'Guwahati, Assam', category: 'sacred', image: 'religion images data/kamakhya devi temple.jpg', updated: false },
+                        { id: 7, name: 'St. John Church', location: 'McLeodganj, HP', category: 'sacred', image: 'religion images data/st john church McLeodGanj.jpg', updated: false },
+                        { id: 8, name: 'Taj-ul-Masajid', location: 'Bhopal, MP', category: 'sacred', image: 'religion images data/Tajulmasajid bhopal.jpg', updated: false },
+                        // Mountains
+                        { id: 9, name: 'Mount Kangchenjunga', location: 'Sikkim', category: 'mountain', image: 'mountain images data/kangchenjunga.jpeg', updated: false },
+                        { id: 10, name: 'Nanda Devi', location: 'Uttarakhand', category: 'mountain', image: 'mountain images data/Nanda Devi.jpg', updated: false },
+                        { id: 11, name: 'Mount Kamet', location: 'Uttarakhand', category: 'mountain', image: 'mountain images data/Kamet.jpg', updated: false },
+                        { id: 12, name: 'Anamudi Peak', location: 'Kerala', category: 'mountain', image: 'mountain images data/Anamudi (1).jpg', updated: false },
+                        { id: 13, name: 'Dzukou Valley', location: 'Nagaland', category: 'mountain', image: 'mountain images data/Dzukou Valley.jpg', updated: false },
+                        { id: 14, name: 'Stok Kangri', location: 'Ladakh', category: 'mountain', image: 'mountain images data/Stok Kangri.jpg', updated: false },
+                        { id: 15, name: 'Aravalli Range', location: 'Rajasthan', category: 'mountain', image: 'mountain images data/Aravalli Range.jpg', updated: false },
+                        { id: 16, name: 'Nilgiri Hills', location: 'Tamil Nadu', category: 'mountain', image: 'mountain images data/Nilgiri Hills.jpg', updated: false },
+                        // Beaches
+                        { id: 17, name: 'Radhanagar Beach', location: 'Andaman', category: 'beach', image: 'Beach images data/Radhanagar-Beach.png', updated: false },
+                        { id: 18, name: 'Palolem Beach', location: 'Goa', category: 'beach', image: 'Beach images data/Palolem Beach.jpg', updated: false },
+                        { id: 19, name: 'Varkala Beach', location: 'Kerala', category: 'beach', image: 'Beach images data/Varkala Beach.jpg', updated: false },
+                        { id: 20, name: 'Marina Beach', location: 'Tamil Nadu', category: 'beach', image: 'Beach images data/Marina Beach.jpg', updated: false },
+                        { id: 21, name: 'Agonda Beach', location: 'Goa', category: 'beach', image: 'Beach images data/Agonda Beach.jpg', updated: false },
+                        { id: 22, name: 'Om Beach', location: 'Karnataka', category: 'beach', image: 'Beach images data/Om Beach.jpg', updated: false }
+                    ];
+                    setLocations(defaultLocations);
+                    localStorage.setItem('adminLocations', JSON.stringify(defaultLocations));
+                }
+            };
+
+            const handleImageUpload = (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onloadend = () => {
+                        const base64String = reader.result;
+                        setFormData({ ...formData, image: base64String });
+                        setImagePreview(base64String);
+                    };
+                    reader.readAsDataURL(file);
+                }
+            };
+
+            const handleHotelImageUpload = (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onloadend = () => {
+                        const base64String = reader.result;
+                        setHotelForm({ ...hotelForm, image: base64String });
+                        setHotelImagePreview(base64String);
+                    };
+                    reader.readAsDataURL(file);
+                }
+            };
+
+            const handlePLYFileUpload = async (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    if (!file.name.toLowerCase().endsWith('.ply')) {
+                        alert('Please upload a PLY file (.ply extension)');
+                        return;
+                    }
+                    
+                    console.log('PLY file selected:', file.name, 'Size:', file.size);
+                    
+                    // Check file size (localStorage has ~5-10MB limit, but base64 increases size by ~33%)
+                    if (file.size > 3 * 1024 * 1024) { // 3MB limit for base64
+                        alert('Warning: File is large (' + (file.size / 1024 / 1024).toFixed(2) + 'MB). Large files may not save properly in localStorage. Consider using a smaller file.');
+                    }
+                    
+                    // Store as base64 data URL
+                    const reader = new FileReader();
+                    reader.onloadend = () => {
+                        const fileUrl = reader.result;
+                        console.log('PLY file loaded, data URL length:', fileUrl.length);
+                        console.log('Updating formData with plyFile');
+                        
+                        // Update formData with the new plyFile
+                        setFormData(prevFormData => {
+                            const updated = { ...prevFormData, plyFile: fileUrl };
+                            console.log('Updated formData:', updated);
+                            console.log('PLY File in updated formData:', updated.plyFile);
+                            return updated;
+                        });
+                        setPlyFileUrl(fileUrl);
+                        console.log('PLY file URL set in state');
+                    };
+                    reader.onerror = (error) => {
+                        console.error('Error reading PLY file:', error);
+                        alert('Error reading PLY file. Please try again.');
+                    };
+                    reader.readAsDataURL(file);
+                }
+            };
+
+            const handleGLBFileUpload = async (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    if (!file.name.toLowerCase().endsWith('.glb')) {
+                        alert('Please upload a GLB file (.glb extension)');
+                        return;
+                    }
+                    
+                    console.log('GLB file selected:', file.name, 'Size:', file.size);
+                    
+                    if (file.size > 3 * 1024 * 1024) {
+                        alert('Warning: File is large (' + (file.size / 1024 / 1024).toFixed(2) + 'MB). Large files may not save properly in localStorage. Consider using a smaller file.');
+                    }
+                    
+                    const reader = new FileReader();
+                    reader.onloadend = () => {
+                        const fileUrl = reader.result;
+                        console.log('GLB file loaded, data URL length:', fileUrl.length);
+                        
+                        setFormData(prevFormData => {
+                            const updated = { ...prevFormData, glbFile: fileUrl };
+                            console.log('Updated formData with GLB file');
+                            return updated;
+                        });
+                        setGlbFileUrl(fileUrl);
+                        console.log('GLB file URL set in state');
+                    };
+                    reader.onerror = (error) => {
+                        console.error('Error reading GLB file:', error);
+                        alert('Error reading GLB file. Please try again.');
+                    };
+                    reader.readAsDataURL(file);
+                }
+            };
+
+            const handleSelectLocation = (loc) => {
+                setSelectedLocation(loc);
+                setIsAddingNew(false);
+                setFormData({
+                    name: loc.name || '',
+                    location: loc.location || '',
+                    category: loc.category || 'sacred',
+                    image: loc.image || '',
+                    plyFile: loc.plyFile || '',
+                    glbFile: loc.glbFile || '',
+                    guideName: loc.guideName || '',
+                    guidePhone: loc.guidePhone || '',
+                    guideEmail: loc.guideEmail || '',
+                    guideLanguages: loc.guideLanguages || '',
+                    guideExperience: loc.guideExperience || '',
+                    coordinates: loc.coordinates || { lat: '', lng: '' },
+                    hotels: loc.hotels || []
+                });
+                setImagePreview(loc.image || null);
+                setPlyFileUrl(loc.plyFile || null);
+                setGlbFileUrl(loc.glbFile || null);
+            };
+
+            const handleAddNew = () => {
+                setIsAddingNew(true);
+                setSelectedLocation(null);
+                setFormData({
+                    name: '',
+                    location: '',
+                    category: 'sacred',
+                    image: '',
+                    plyFile: '',
+                    glbFile: '',
+                    guideName: '',
+                    guidePhone: '',
+                    guideEmail: '',
+                    guideLanguages: '',
+                    guideExperience: '',
+                    coordinates: { lat: '', lng: '' },
+                    hotels: []
+                });
+                setImagePreview(null);
+                setPlyFileUrl(null);
+                setGlbFileUrl(null);
+                setHotelForm({
+                    name: '',
+                    address: '',
+                    phone: '',
+                    email: '',
+                    price: '',
+                    rating: '',
+                    amenities: '',
+                    website: ''
+                });
+            };
+
+            const handleSave = () => {
+                console.log('Saving location with formData:', formData);
+                console.log('PLY File in formData:', formData.plyFile);
+                
+                if (isAddingNew) {
+                    // Add new location
+                    if (!formData.name || !formData.location) {
+                        alert('Please fill in location name and address');
+                        return;
+                    }
+                    
+                    // Generate new ID
+                    const maxId = locations.length > 0 ? Math.max(...locations.map(loc => loc.id)) : 0;
+                    const newLocation = {
+                        id: maxId + 1,
+                        ...formData,
+                        updated: true,
+                        createdAt: new Date().toISOString(),
+                        updatedAt: new Date().toISOString()
+                    };
+                    
+                    console.log('New location to save:', newLocation);
+                    console.log('PLY File in newLocation:', newLocation.plyFile);
+                    
+                    const updatedLocations = [...locations, newLocation];
+                    setLocations(updatedLocations);
+                    
+                    try {
+                        localStorage.setItem('adminLocations', JSON.stringify(updatedLocations));
+                        console.log('Saved to localStorage successfully');
+                        
+                        // Trigger storage event so main page can update
+                        window.dispatchEvent(new Event('storage'));
+                        
+                        alert('New location added successfully!' + (formData.plyFile ? ' (PLY file included)' : ''));
+                    } catch (error) {
+                        console.error('Error saving to localStorage:', error);
+                        if (error.name === 'QuotaExceededError') {
+                            alert('Error: PLY file is too large for localStorage. Please use a smaller file or upload to server.');
+                        } else {
+                            alert('Error saving: ' + error.message);
+                        }
+                        return;
+                    }
+                    
+                    // Reset form
+                    handleReset();
+                } else {
+                    // Update existing location
+                    if (!selectedLocation) return;
+                    
+                    const updatedLocations = locations.map(loc => {
+                        if (loc.id === selectedLocation.id) {
+                            const updated = {
+                                ...loc,
+                                ...formData,
+                                updated: true,
+                                updatedAt: new Date().toISOString()
+                            };
+                            console.log('Updated location:', updated);
+                            console.log('PLY File in updated location:', updated.plyFile);
+                            return updated;
+                        }
+                        return loc;
+                    });
+                    setLocations(updatedLocations);
+                    
+                    try {
+                        localStorage.setItem('adminLocations', JSON.stringify(updatedLocations));
+                        console.log('Updated localStorage successfully');
+                        
+                        // Trigger storage event so main page can update
+                        window.dispatchEvent(new Event('storage'));
+                        
+                        alert('Location updated successfully!' + (formData.plyFile ? ' (PLY file saved)' : ''));
+                    } catch (error) {
+                        console.error('Error saving to localStorage:', error);
+                        if (error.name === 'QuotaExceededError') {
+                            alert('Error: PLY file is too large for localStorage. Please use a smaller file or upload to server.');
+                        } else {
+                            alert('Error saving: ' + error.message);
+                        }
+                        return;
+                    }
+                }
+            };
+
+            const handleReset = () => {
+                setSelectedLocation(null);
+                setIsAddingNew(false);
+                setFormData({
+                    name: '',
+                    location: '',
+                    category: 'sacred',
+                    image: '',
+                    plyFile: '',
+                    guideName: '',
+                    guidePhone: '',
+                    guideEmail: '',
+                    guideLanguages: '',
+                    guideExperience: '',
+                    coordinates: { lat: '', lng: '' },
+                    hotels: []
+                });
+                setImagePreview(null);
+                setPlyFileUrl(null);
+                setHotelForm({
+                    name: '',
+                    address: '',
+                    phone: '',
+                    email: '',
+                    price: '',
+                    rating: '',
+                    amenities: '',
+                    website: '',
+                    image: ''
+                });
+                setHotelImagePreview(null);
+            };
+
+            const handleAddHotel = () => {
+                if (!hotelForm.name || !hotelForm.address) {
+                    alert('Please fill in hotel name and address');
+                    return;
+                }
+                const newHotel = {
+                    id: Date.now(),
+                    ...hotelForm
+                };
+                setFormData({
+                    ...formData,
+                    hotels: [...(formData.hotels || []), newHotel]
+                });
+                setHotelForm({
+                    name: '',
+                    address: '',
+                    phone: '',
+                    email: '',
+                    price: '',
+                    rating: '',
+                    amenities: '',
+                    website: '',
+                    image: ''
+                });
+                setHotelImagePreview(null);
+            };
+
+            const handleRemoveHotel = (hotelId) => {
+                setFormData({
+                    ...formData,
+                    hotels: formData.hotels.filter(h => h.id !== hotelId)
+                });
+            };
+
+            const handleDelete = () => {
+                if (!selectedLocation || isAddingNew) {
+                    alert('Please select a location to delete');
+                    return;
+                }
+                
+                if (confirm(`Are you sure you want to delete "${selectedLocation.name}"?`)) {
+                    // Convert ID to same type for comparison (handle both string and number IDs)
+                    const selectedId = String(selectedLocation.id);
+                    const updatedLocations = locations.filter(loc => String(loc.id) !== selectedId);
+                    
+                    console.log('Deleting location:', selectedLocation.name, 'ID:', selectedId);
+                    console.log('Locations before:', locations.length, 'After:', updatedLocations.length);
+                    
+                    // Update state
+                    setLocations(updatedLocations);
+                    
+                    // Save to localStorage
+                    localStorage.setItem('adminLocations', JSON.stringify(updatedLocations));
+                    
+                    // Trigger storage event so main page can update
+                    window.dispatchEvent(new Event('storage'));
+                    
+                    // Also trigger a custom event for immediate sync
+                    window.dispatchEvent(new CustomEvent('adminLocationsUpdated', { 
+                        detail: { locations: updatedLocations } 
+                    }));
+                    
+                    // Reset form and selection
+                    handleReset();
+                    setSelectedLocation(null);
+                    
+                    alert('Location deleted successfully!');
+                }
+            };
+
+            const filteredLocations = locations.filter(loc => {
+                const matchesCategory = formData.category ? loc.category === formData.category : true;
+                const matchesSearch = searchTerm ? 
+                    loc.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                    loc.location.toLowerCase().includes(searchTerm.toLowerCase()) : true;
+                return matchesCategory && matchesSearch;
+            });
+
+            return (
+                <div className={`min-h-screen ${darkMode ? 'bg-gray-900' : 'bg-gray-100'} p-4`}>
+                    <div className="max-w-7xl mx-auto">
+                        {/* Header */}
+                        <div className={`${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-xl p-6 mb-6 shadow-lg`}>
+                            <div className="flex justify-between items-center">
+                                <div>
+                                    <h1 className={`text-3xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                                        Location Management Panel
+                                    </h1>
+                                    <p className={`${darkMode ? 'text-gray-400' : 'text-gray-600'} mt-1`}>
+                                        Update locations, images, and tourist guide information
+                                    </p>
+                                </div>
+                                <div className="flex gap-3">
+                                    <button
+                                        onClick={() => window.location.href = 'bharattripai.html'}
+                                        className={`px-4 py-2 rounded-lg font-semibold transition-colors ${
+                                            darkMode 
+                                                ? 'bg-gray-700 hover:bg-gray-600 text-white' 
+                                                : 'bg-gray-200 hover:bg-gray-300 text-gray-700'
+                                        }`}
+                                    >
+                                        ← Back to Main
+                                    </button>
+                                    <button
+                                        onClick={() => {
+                                            setDarkMode(!darkMode);
+                                            localStorage.setItem('darkMode', !darkMode);
+                                        }}
+                                        className={`p-2 rounded-full transition-colors ${darkMode ? 'bg-gray-700 text-yellow-400' : 'bg-gray-200 text-gray-700'}`}
+                                    >
+                                        {darkMode ? '☀️' : '🌙'}
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                            {/* Location List */}
+                            <div className={`${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-xl p-6 shadow-lg`}>
+                                <div className="mb-4 space-y-4">
+                                    <div>
+                                        <label className={`block text-sm font-medium mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                                            Filter by Category
+                                        </label>
+                                        <select
+                                            value={formData.category}
+                                            onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                                            className={`w-full px-4 py-2 rounded-lg border ${
+                                                darkMode 
+                                                    ? 'bg-gray-700 border-gray-600 text-white' 
+                                                    : 'bg-white border-gray-300 text-gray-900'
+                                            }`}
+                                        >
+                                            <option value="">All Categories</option>
+                                            <option value="sacred">Sacred</option>
+                                            <option value="mountain">Mountain</option>
+                                            <option value="beach">Beach</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label className={`block text-sm font-medium mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                                            Search Locations
+                                        </label>
+                                        <input
+                                            type="text"
+                                            value={searchTerm}
+                                            onChange={(e) => setSearchTerm(e.target.value)}
+                                            placeholder="Search by name or location..."
+                                            className={`w-full px-4 py-2 rounded-lg border ${
+                                                darkMode 
+                                                    ? 'bg-gray-700 border-gray-600 text-white' 
+                                                    : 'bg-white border-gray-300 text-gray-900'
+                                            }`}
+                                        />
+                                    </div>
+                                    <div className="mt-4">
+                                        <button
+                                            onClick={handleAddNew}
+                                            className={`w-full px-4 py-3 rounded-lg font-semibold transition-colors ${
+                                                darkMode 
+                                                    ? 'bg-green-600 hover:bg-green-700 text-white' 
+                                                    : 'bg-green-500 hover:bg-green-600 text-white'
+                                            } flex items-center justify-center gap-2`}
+                                        >
+                                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                                            </svg>
+                                            Add New Location
+                                        </button>
+                                    </div>
+                                </div>
+                                <div className={`${darkMode ? 'bg-gray-700' : 'bg-gray-50'} rounded-lg p-4 max-h-[600px] overflow-y-auto`}>
+                                    {filteredLocations.map(loc => (
+                                        <div
+                                            key={loc.id}
+                                            onClick={() => handleSelectLocation(loc)}
+                                            className={`p-3 mb-2 rounded-lg cursor-pointer transition ${
+                                                selectedLocation?.id === loc.id
+                                                    ? darkMode ? 'bg-blue-600' : 'bg-blue-100'
+                                                    : darkMode ? 'bg-gray-600 hover:bg-gray-500' : 'bg-white hover:bg-gray-100'
+                                            }`}
+                                        >
+                                            <div className="flex items-center justify-between">
+                                                <div>
+                                                    <h3 className={`font-semibold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                                                        {loc.name}
+                                                    </h3>
+                                                    <p className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+                                                        {loc.location}
+                                                    </p>
+                                                </div>
+                                                {loc.updated && (
+                                                    <span className="text-xs bg-green-500 text-white px-2 py-1 rounded">
+                                                        Updated
+                                                    </span>
+                                                )}
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+
+                            {/* Edit/Add Form */}
+                            <div className={`${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-xl p-6 shadow-lg`}>
+                                {selectedLocation || isAddingNew ? (
+                                    <div className="space-y-4">
+                                        <div className="flex justify-between items-center">
+                                            <h3 className={`text-xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                                                {isAddingNew ? 'Add New Location' : `Edit Location: ${selectedLocation.name}`}
+                                            </h3>
+                                            {!isAddingNew && (
+                                                <button
+                                                    onClick={handleDelete}
+                                                    className="px-3 py-1 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-semibold transition-colors"
+                                                >
+                                                    Delete
+                                                </button>
+                                            )}
+                                        </div>
+                                        
+                                        <div>
+                                            <label className={`block text-sm font-medium mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                                                Category *
+                                            </label>
+                                            <select
+                                                value={formData.category}
+                                                onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                                                className={`w-full px-4 py-2 rounded-lg border ${
+                                                    darkMode 
+                                                        ? 'bg-gray-700 border-gray-600 text-white' 
+                                                        : 'bg-white border-gray-300 text-gray-900'
+                                                }`}
+                                            >
+                                                <option value="sacred">Sacred</option>
+                                                <option value="mountain">Mountain</option>
+                                                <option value="beach">Beach</option>
+                                            </select>
+                                        </div>
+                                        
+                                        <div>
+                                            <label className={`block text-sm font-medium mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                                                Location Name *
+                                            </label>
+                                            <input
+                                                type="text"
+                                                value={formData.name}
+                                                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                                                placeholder="e.g., Taj Mahal"
+                                                className={`w-full px-4 py-2 rounded-lg border ${
+                                                    darkMode 
+                                                        ? 'bg-gray-700 border-gray-600 text-white' 
+                                                        : 'bg-white border-gray-300 text-gray-900'
+                                                }`}
+                                                required
+                                            />
+                                        </div>
+
+                                        <div>
+                                            <label className={`block text-sm font-medium mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                                                Location Address *
+                                            </label>
+                                            <input
+                                                type="text"
+                                                value={formData.location}
+                                                onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+                                                placeholder="e.g., Agra, Uttar Pradesh"
+                                                className={`w-full px-4 py-2 rounded-lg border ${
+                                                    darkMode 
+                                                        ? 'bg-gray-700 border-gray-600 text-white' 
+                                                        : 'bg-white border-gray-300 text-gray-900'
+                                                }`}
+                                                required
+                                            />
+                                        </div>
+
+                                        <div>
+                                            <label className={`block text-sm font-medium mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                                                Upload Image *
+                                            </label>
+                                            <input
+                                                type="file"
+                                                accept="image/*"
+                                                onChange={handleImageUpload}
+                                                className={`w-full px-4 py-2 rounded-lg border ${
+                                                    darkMode 
+                                                        ? 'bg-gray-700 border-gray-600 text-white' 
+                                                        : 'bg-white border-gray-300 text-gray-900'
+                                                }`}
+                                                required={isAddingNew}
+                                            />
+                                            {imagePreview && (
+                                                <div className="mt-2">
+                                                    <img src={imagePreview} alt="Preview" className="w-full h-48 object-cover rounded-lg" />
+                                                    <button
+                                                        onClick={() => {
+                                                            setImagePreview(null);
+                                                            setFormData({ ...formData, image: '' });
+                                                        }}
+                                                        className="mt-2 px-3 py-1 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm"
+                                                    >
+                                                        Remove Image
+                                                    </button>
+                                                </div>
+                                            )}
+                                            {!imagePreview && isAddingNew && (
+                                                <p className={`text-xs mt-1 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                                                    * Image is required for new locations
+                                                </p>
+                                            )}
+                                        </div>
+
+                                        <div>
+                                            <label className={`block text-sm font-medium mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                                                Upload 3D Model (PLY File)
+                                            </label>
+                                            <input
+                                                type="file"
+                                                accept=".ply"
+                                                onChange={handlePLYFileUpload}
+                                                className={`w-full px-4 py-2 rounded-lg border ${
+                                                    darkMode 
+                                                        ? 'bg-gray-700 border-gray-600 text-white' 
+                                                        : 'bg-white border-gray-300 text-gray-900'
+                                                }`}
+                                            />
+                                            {plyFileUrl && (
+                                                <div className="mt-2">
+                                                    <p className={`text-sm ${darkMode ? 'text-green-400' : 'text-green-600'} mb-2`}>
+                                                        ✓ PLY file uploaded successfully
+                                                    </p>
+                                                    <button
+                                                        onClick={() => {
+                                                            setPlyFileUrl(null);
+                                                            setFormData({ ...formData, plyFile: '' });
+                                                        }}
+                                                        className="px-3 py-1 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm"
+                                                    >
+                                                        Remove PLY File
+                                                    </button>
+                                                </div>
+                                            )}
+                                            <p className={`text-xs mt-1 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                                                Upload a PLY file for AR/3D viewing. This file will be used for the AR view feature.
+                                            </p>
+                                        </div>
+
+                                        <div>
+                                            <label className={`block text-sm font-medium mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                                                Upload 3D Model (GLB File)
+                                            </label>
+                                            <input
+                                                type="file"
+                                                accept=".glb"
+                                                onChange={handleGLBFileUpload}
+                                                className={`w-full px-4 py-2 rounded-lg border ${
+                                                    darkMode 
+                                                        ? 'bg-gray-700 border-gray-600 text-white' 
+                                                        : 'bg-white border-gray-300 text-gray-900'
+                                                }`}
+                                            />
+                                            {glbFileUrl && (
+                                                <div className="mt-2">
+                                                    <p className={`text-sm ${darkMode ? 'text-green-400' : 'text-green-600'} mb-2`}>
+                                                        ✓ GLB file uploaded successfully
+                                                    </p>
+                                                    <button
+                                                        onClick={() => {
+                                                            setGlbFileUrl(null);
+                                                            setFormData({ ...formData, glbFile: '' });
+                                                        }}
+                                                        className="px-3 py-1 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm"
+                                                    >
+                                                        Remove GLB File
+                                                    </button>
+                                                </div>
+                                            )}
+                                            <p className={`text-xs mt-1 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                                                Upload a GLB file for AR/3D viewing. GLB files are preferred for better textures and materials.
+                                            </p>
+                                        </div>
+
+                                        <div className="border-t pt-4">
+                                            <h4 className={`font-semibold mb-3 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                                                Tourist Guide Information
+                                            </h4>
+                                            
+                                            <div className="space-y-3">
+                                                <input
+                                                    type="text"
+                                                    placeholder="Guide Name"
+                                                    value={formData.guideName}
+                                                    onChange={(e) => setFormData({ ...formData, guideName: e.target.value })}
+                                                    className={`w-full px-4 py-2 rounded-lg border ${
+                                                        darkMode 
+                                                            ? 'bg-gray-700 border-gray-600 text-white' 
+                                                            : 'bg-white border-gray-300 text-gray-900'
+                                                    }`}
+                                                />
+                                                <input
+                                                    type="tel"
+                                                    placeholder="Guide Phone"
+                                                    value={formData.guidePhone}
+                                                    onChange={(e) => setFormData({ ...formData, guidePhone: e.target.value })}
+                                                    className={`w-full px-4 py-2 rounded-lg border ${
+                                                        darkMode 
+                                                            ? 'bg-gray-700 border-gray-600 text-white' 
+                                                            : 'bg-white border-gray-300 text-gray-900'
+                                                    }`}
+                                                />
+                                                <input
+                                                    type="email"
+                                                    placeholder="Guide Email"
+                                                    value={formData.guideEmail}
+                                                    onChange={(e) => setFormData({ ...formData, guideEmail: e.target.value })}
+                                                    className={`w-full px-4 py-2 rounded-lg border ${
+                                                        darkMode 
+                                                            ? 'bg-gray-700 border-gray-600 text-white' 
+                                                            : 'bg-white border-gray-300 text-gray-900'
+                                                    }`}
+                                                />
+                                                <input
+                                                    type="text"
+                                                    placeholder="Languages (e.g., Hindi, English)"
+                                                    value={formData.guideLanguages}
+                                                    onChange={(e) => setFormData({ ...formData, guideLanguages: e.target.value })}
+                                                    className={`w-full px-4 py-2 rounded-lg border ${
+                                                        darkMode 
+                                                            ? 'bg-gray-700 border-gray-600 text-white' 
+                                                            : 'bg-white border-gray-300 text-gray-900'
+                                                    }`}
+                                                />
+                                                <textarea
+                                                    placeholder="Guide Experience"
+                                                    value={formData.guideExperience}
+                                                    onChange={(e) => setFormData({ ...formData, guideExperience: e.target.value })}
+                                                    rows="3"
+                                                    className={`w-full px-4 py-2 rounded-lg border ${
+                                                        darkMode 
+                                                            ? 'bg-gray-700 border-gray-600 text-white' 
+                                                            : 'bg-white border-gray-300 text-gray-900'
+                                                    }`}
+                                                />
+                                            </div>
+                                        </div>
+
+                                        <div className="border-t pt-4">
+                                            <h4 className={`font-semibold mb-3 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                                                Hotels Information
+                                            </h4>
+                                            
+                                            {/* Add Hotel Form */}
+                                            <div className={`${darkMode ? 'bg-gray-700' : 'bg-gray-50'} rounded-lg p-4 mb-4 space-y-3`}>
+                                                <h5 className={`font-medium mb-2 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                                                    Add New Hotel
+                                                </h5>
+                                                <div className="grid grid-cols-2 gap-3">
+                                                    <input
+                                                        type="text"
+                                                        placeholder="Hotel Name *"
+                                                        value={hotelForm.name}
+                                                        onChange={(e) => setHotelForm({ ...hotelForm, name: e.target.value })}
+                                                        className={`px-4 py-2 rounded-lg border ${
+                                                            darkMode 
+                                                                ? 'bg-gray-600 border-gray-500 text-white' 
+                                                                : 'bg-white border-gray-300 text-gray-900'
+                                                        }`}
+                                                    />
+                                                    <input
+                                                        type="text"
+                                                        placeholder="Address *"
+                                                        value={hotelForm.address}
+                                                        onChange={(e) => setHotelForm({ ...hotelForm, address: e.target.value })}
+                                                        className={`px-4 py-2 rounded-lg border ${
+                                                            darkMode 
+                                                                ? 'bg-gray-600 border-gray-500 text-white' 
+                                                                : 'bg-white border-gray-300 text-gray-900'
+                                                        }`}
+                                                    />
+                                                    <input
+                                                        type="tel"
+                                                        placeholder="Phone"
+                                                        value={hotelForm.phone}
+                                                        onChange={(e) => setHotelForm({ ...hotelForm, phone: e.target.value })}
+                                                        className={`px-4 py-2 rounded-lg border ${
+                                                            darkMode 
+                                                                ? 'bg-gray-600 border-gray-500 text-white' 
+                                                                : 'bg-white border-gray-300 text-gray-900'
+                                                        }`}
+                                                    />
+                                                    <input
+                                                        type="email"
+                                                        placeholder="Email"
+                                                        value={hotelForm.email}
+                                                        onChange={(e) => setHotelForm({ ...hotelForm, email: e.target.value })}
+                                                        className={`px-4 py-2 rounded-lg border ${
+                                                            darkMode 
+                                                                ? 'bg-gray-600 border-gray-500 text-white' 
+                                                                : 'bg-white border-gray-300 text-gray-900'
+                                                        }`}
+                                                    />
+                                                    <input
+                                                        type="text"
+                                                        placeholder="Price per night (₹)"
+                                                        value={hotelForm.price}
+                                                        onChange={(e) => setHotelForm({ ...hotelForm, price: e.target.value })}
+                                                        className={`px-4 py-2 rounded-lg border ${
+                                                            darkMode 
+                                                                ? 'bg-gray-600 border-gray-500 text-white' 
+                                                                : 'bg-white border-gray-300 text-gray-900'
+                                                        }`}
+                                                    />
+                                                    <input
+                                                        type="text"
+                                                        placeholder="Rating (e.g., 4.5/5)"
+                                                        value={hotelForm.rating}
+                                                        onChange={(e) => setHotelForm({ ...hotelForm, rating: e.target.value })}
+                                                        className={`px-4 py-2 rounded-lg border ${
+                                                            darkMode 
+                                                                ? 'bg-gray-600 border-gray-500 text-white' 
+                                                                : 'bg-white border-gray-300 text-gray-900'
+                                                        }`}
+                                                    />
+                                                    <input
+                                                        type="text"
+                                                        placeholder="Amenities (comma separated)"
+                                                        value={hotelForm.amenities}
+                                                        onChange={(e) => setHotelForm({ ...hotelForm, amenities: e.target.value })}
+                                                        className={`px-4 py-2 rounded-lg border ${
+                                                            darkMode 
+                                                                ? 'bg-gray-600 border-gray-500 text-white' 
+                                                                : 'bg-white border-gray-300 text-gray-900'
+                                                        }`}
+                                                    />
+                                                    <input
+                                                        type="url"
+                                                        placeholder="Website URL"
+                                                        value={hotelForm.website}
+                                                        onChange={(e) => setHotelForm({ ...hotelForm, website: e.target.value })}
+                                                        className={`px-4 py-2 rounded-lg border ${
+                                                            darkMode 
+                                                                ? 'bg-gray-600 border-gray-500 text-white' 
+                                                                : 'bg-white border-gray-300 text-gray-900'
+                                                        }`}
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <label className={`block text-sm font-medium mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                                                        Hotel Image
+                                                    </label>
+                                                    <input
+                                                        type="file"
+                                                        accept="image/*"
+                                                        onChange={handleHotelImageUpload}
+                                                        className={`w-full px-4 py-2 rounded-lg border ${
+                                                            darkMode 
+                                                                ? 'bg-gray-600 border-gray-500 text-white' 
+                                                                : 'bg-white border-gray-300 text-gray-900'
+                                                        }`}
+                                                    />
+                                                    {hotelImagePreview && (
+                                                        <div className="mt-2">
+                                                            <img src={hotelImagePreview} alt="Hotel Preview" className="w-full h-32 object-cover rounded-lg" />
+                                                            <button
+                                                                onClick={() => {
+                                                                    setHotelImagePreview(null);
+                                                                    setHotelForm({ ...hotelForm, image: '' });
+                                                                }}
+                                                                className="mt-2 px-3 py-1 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm"
+                                                            >
+                                                                Remove Image
+                                                            </button>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                                <button
+                                                    onClick={handleAddHotel}
+                                                    className="w-full bg-green-600 hover:bg-green-700 text-white py-2 rounded-lg font-semibold transition-colors"
+                                                >
+                                                    Add Hotel
+                                                </button>
+                                            </div>
+
+                                            {/* List of Hotels */}
+                                            {formData.hotels && formData.hotels.length > 0 && (
+                                                <div className="space-y-2 max-h-64 overflow-y-auto">
+                                                    {formData.hotels.map((hotel) => (
+                                                        <div key={hotel.id} className={`${darkMode ? 'bg-gray-700' : 'bg-gray-100'} rounded-lg p-3 flex gap-3 items-start`}>
+                                                            {hotel.image && (
+                                                                <img 
+                                                                    src={hotel.image} 
+                                                                    alt={hotel.name}
+                                                                    className="w-20 h-20 object-cover rounded-lg flex-shrink-0"
+                                                                />
+                                                            )}
+                                                            <div className="flex-1">
+                                                                <h5 className={`font-semibold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                                                                    {hotel.name}
+                                                                </h5>
+                                                                <p className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+                                                                    {hotel.address}
+                                                                </p>
+                                                                {hotel.price && (
+                                                                    <p className={`text-sm font-medium ${darkMode ? 'text-green-400' : 'text-green-600'}`}>
+                                                                        ₹{hotel.price}/night
+                                                                    </p>
+                                                                )}
+                                                            </div>
+                                                            <button
+                                                                onClick={() => handleRemoveHotel(hotel.id)}
+                                                                className="ml-2 px-2 py-1 bg-red-600 hover:bg-red-700 text-white rounded text-sm"
+                                                            >
+                                                                Remove
+                                                            </button>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            )}
+                                        </div>
+
+                                        <div className="flex gap-3">
+                                            <button
+                                                onClick={handleSave}
+                                                className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg font-semibold transition-colors"
+                                            >
+                                                {isAddingNew ? 'Add Location' : 'Save Changes'}
+                                            </button>
+                                            <button
+                                                onClick={handleReset}
+                                                className="flex-1 bg-gray-500 hover:bg-gray-600 text-white py-2 rounded-lg font-semibold transition-colors"
+                                            >
+                                                Cancel
+                                            </button>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <div className={`text-center py-12 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                                        Select a location to edit
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        // Main App Component
+        function App() {
+            const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+            if (!isAuthenticated) {
+                return <AdminAuth onSuccess={() => setIsAuthenticated(true)} />;
+            }
+
+            return <LocationAdminPanel />;
+        }
+
+        // Render App
+        ReactDOM.render(<App />, document.getElementById('root'));
+    </script>
+</body>
+</html>
